@@ -1,0 +1,31 @@
+{
+	"objectName": "Image Package",
+	"objectPurpose": "To Store collection of b64 images.",
+	"isPointless" : true,
+	"testList" : ["word1","word2","word4", "oops"],
+	"imageCollection":{	
+	"numImages" : 4,
+	"images":[
+		{
+			"imageTitle" : "pointlessString",
+			"imageDescription" : "",
+			"imageB64": ""
+		},
+		{
+			"imageTitle" : "pointlessString",
+			"imageDescription" : "",
+			"imageB64": ""
+		},
+		{
+			"imageTitle" : "pointlessString",
+			"imageDescription" : "",
+			"imageB64": ""
+		},
+		{
+			"imageTitle" : "pointlessString",
+			"imageDescription" : "",
+			"imageB64": ""
+		}
+	]
+	}
+}

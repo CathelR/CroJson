@@ -1,0 +1,13 @@
+﻿  JsonReader.c
+C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\JsonReader.c(5,10): fatal error C1083: Cannot open include file: 'Structs.h': No such file or directory
+  QuikTest.c
+C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\QuikTest.c(15,2): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  FileFuncs.c
+C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\FileFuncs.c(12,9): warning C4013: 'gets' undefined; assuming extern returning int
+C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\FileFuncs.c(13,29): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\FileFuncs.c(69,22): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\FileFuncs.c(94,29): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\FileFuncs.c(96,9): error C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  Utils.c
+C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\Utils.c(16,31): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  Generating Code...

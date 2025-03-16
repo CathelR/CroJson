@@ -1,0 +1,12 @@
+{
+	"objectName": "Image Package",
+	"objectPurpose": "To Store collection of b64 images.",
+	"isPointless" : true,
+	"numberImages" : 4
+	"subObject" : {
+		"subString": "",
+		"subInt" : 4,
+		"subObject2":{"":""}
+		}
+}
+

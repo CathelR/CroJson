@@ -1,0 +1,8 @@
+{
+	"objectName": "Image Package",
+	"objectPurpose": "To Store collection of b64 images.,
+	"isPointless" : true,
+	"numberImages" : 4,
+	"testList" : ["word1","word2","word4", "oops"]
+
+}
