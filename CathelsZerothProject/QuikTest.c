@@ -6,88 +6,78 @@
 
 #define char_is_numeric(inChar) (inChar >= 48 && inChar <= 57)
 
-bool ParseDigitString(char*, float*);
 bool ParseFloat(char*, float*);
+bool ParseInt(char*, int*);
 
 
 
 int main()
 {
-	char test1[] = "-99.9";
-    char test2[] = "-0013.5";
-    char test3[] = "-12.354";
-    char test4[] = "-565.465154";
+	char test1[] = "-99900";
+    char test2[] = "45621";
+    char test3[] = "12.354";
+    char test4[] = "-.465154";
+
+    char tests[][4] = { test1,test2,test3,test4 };
 	
     float floatVal;
     float* fvPtr = &floatVal;
-    if (ParseFloat(test1, fvPtr))
+    int intVal;
+    int* intPtr = &intVal;
+    
+    for(int i = 0;i< 4; i++)
+    if (ParseInt(test1, intPtr))
     {
-        printf("result: %f\n", floatVal);
+        printf("result: %d\n", intVal);
     }
-    else printf("Test 1 failed");
+    else printf("Test 1 failed\n");
+    
 
-    if (ParseFloat(test2, fvPtr))
-    {
-        printf("result: %f\n", floatVal);
-    }
-    else printf("Test 2 failed");
-
-    if (ParseFloat(test3, fvPtr))
-    {
-        printf("result: %f\n", floatVal);
-    }
-    else printf("Test 3 failed");
-
-    if (ParseFloat(test4, fvPtr))
-    {
-        printf("result: %0.10f\n", floatVal);
-    }
-    else printf("Test 4 failed");
-
+    
 	return 0;
 }
 
 
-/*
-bool ParseNumber(char* content)
+
+bool ParseNumber(char* input) //How do we handle erros here then?//I think we dont need this - just decide at parse time
 {
     int intVal;
     float floatVal;
     char dot[] = ".";
     bool isSuccess;
 
-    if (strstr(content, dot))
+    if (strstr(input, dot))
     {
-        floatVal = ParseFloat(content, &intVal);
+        isSuccess = ParseFloat(input, &floatVal);
     }
     else
     {
-        intVal = ParseInt(content,&floatVal);
+        isSuccess = ParseInt(input,&intVal);
     }
+
+    if()
 }
 
-bool ParseInt(char* content, int* intValPtr)
+/*This is essentially a decorator over the ParseDigitString method - converts the result to int*/
+bool ParseInt(char*input, int* intValPtr)
 {
-    //*intValPtr = ParseDigitString(content);
-    return false;
-}
-*/
+    float floatVal;
 
+    if(!ParseFloat(input, &floatVal))
+        return false;
+    *intValPtr = (int)floatVal;
 
-bool ParseFloat(char* input, float* floatValPtr)
-{
-    if (ParseDigitString(input, floatValPtr))
-        return true;
-    else return false;
+    return true;;
 }
 
 
 /*This is the core number parsing logic - we always parse as a float, and if need an int, we cast it*/
-bool ParseDigitString(char* input, float* floatValPtr)
+bool ParseFloat(char* input, float* floatValPtr)
 {
     float result = 0;
     int multiplier = 1;
-    int reductionFactor;
+    int reductionFactor=0;
+    bool hasDecPoint = false;
     for (int i = strlen(input) - 1; i >= 0; i--)
     {
         if (char_is_numeric(input[i]))
@@ -101,13 +91,13 @@ bool ParseDigitString(char* input, float* floatValPtr)
             result = result * -1;
             //instead of doing this, just change the bit - does this need to happen after the fact?
         }
-        else if (input[i] == '.' && i != 0)//need to check we dont have -.234 for example....
+        else if (input[i] == '.' && i != 0 && hasDecPoint==false)//need to check we dont have -.234 for example....
         {
             reductionFactor = (strlen(input) - 1) - i;
+            hasDecPoint = true;
         }
         else return false;
 
-        /*Wanted to do something clever like change the exponenent instead of */
     }
     for (int f = 0; f < reductionFactor; f++)
         result = result / 10;

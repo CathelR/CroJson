@@ -70,6 +70,8 @@ typedef struct JsonBuffer
 
 /*Prototype declaration*/
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
+bool ParseFloat(char*, float*);
+bool ParseInt(char*, int*);
 void PrintError();
 TreeNode* CreateNode(JsonBuffer*);
 bool AttatchNodeToRoot(TreeNode*, TreeNode*);
@@ -134,9 +136,11 @@ bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the obj
     else return true;
 }
 
+/*Arrays are implemented at linked lists - the node pointer of each node points to the next item in the list*/
 TreeNode* ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the object created when we called parseValue
 {
-
+    //do while cursor = ,
+    //Add new thing to linked list
 }
 
 bool ParseValue(JsonBuffer* bPtr, TreeNode* relRoot)
@@ -164,11 +168,11 @@ bool ParseValue(JsonBuffer* bPtr, TreeNode* relRoot)
         ParseObject(bPtr, node); //Needs the node we're working withj as Parse Object deals with whats in the  {}
         break;
     case '"':
-        //Dont wan to call read string directly - should be an interacemethod wh ere handle tpe assignment as well
+        ParseString(bPtr, node);
         break;
 
     default:
-        ParseNonString();
+        ParseNonString(bPtr,node);
     }
     bool attatchSuccess = AtatchNodeToRoot(relRoot, node);
     
@@ -179,9 +183,106 @@ bool ParseValue(JsonBuffer* bPtr, TreeNode* relRoot)
 }
 
 
+/*This is basically a work allocation method, decides which strategy to use to parse the value*/
+bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
+{
+    bool isSuccess = false;
+    char* content = ReadNonString(bPtr);
+    if (content == NULL) return false;
+
+    if (content == "true")
+    {
+        valueNode->boolVal = true;
+        isSuccess = true;
+    }
+    else if (content == "false")
+    {
+        valueNode->boolVal = false;
+        isSuccess = true;
+    }
+    else if (char_is_numeric(content[strlent(content) - 1]))
+    {
+        if (strstr(content, "."))
+        {
+            isSuccess = ParseFloat(content, &valueNode->floatVal);
+        }
+        else
+        {
+            isSuccess = ParseInt(content, &valueNode->intVal);
+        }
+        
+    }
+    else isSuccess = false;
+
+    free(content);
+    return isSuccess;
+}
+
+/*This is essentially a decorator over the ReadString method. It handles the actual assignment*/
+bool ParseString(JsonBuffer* bPtr, TreeNode* valueNode)
+{
+    char* string = ReadString(bPtr);
+    if (string != NULL)
+    {
+        valueNode->stringVal = string;
+        return true;
+    }
+    else return false;
+}
+
+
+
+
+/*This is essentially a decorator over the ParseFloat() method - converts the result to int*/
+bool ParseInt(char* input, int* intValPtr)
+{
+    float floatVal;
+
+    if (!ParseFloat(input, &floatVal))
+        return false;
+    *intValPtr = (int)floatVal;
+
+    return true;;
+}
+
+
+/*This is the core number parsing logic - we always parse as a float, and if need an int, we cast it*/
+bool ParseFloat(char* input, float* floatValPtr)
+{
+    float result = 0;
+    int multiplier = 1;
+    int reductionFactor = 0;
+    bool hasDecPoint = false;
+    for (int i = strlen(input) - 1; i >= 0; i--)
+    {
+        if (char_is_numeric(input[i]))
+        {
+            result = result + ((input[i] - 48) * multiplier);
+            multiplier = multiplier * 10;
+            //Kind of need a size limit on this - There is a maximum size of int 
+        }
+        else if (input[i] == '-' && i == 0)
+        {
+            result = result * -1;
+            //TO DO: instead of doing this, just change the bit
+        }
+        else if (input[i] == '.' && hasDecPoint == false)
+        {
+            reductionFactor = (strlen(input) - 1) - i;
+            hasDecPoint = true;
+        }
+        else return false;
+
+    }
+    for (int f = 0; f < reductionFactor; f++)
+        result = result / 10;
+
+    *floatValPtr = result;
+    return true;
+}
 
 /*Method to parse a string. Can be used for names as well as values*/
-char* ReadString(JsonBuffer* bPtr)
+char* ReadText(JsonBuffer* bPtr, char boundaryChar)
 {
     SkipWhiteSpace(bPtr);
     bPtr->cursor++; //Advance past first //But SKip WhiteSpace lands us on the next char - so we need a convention...
@@ -191,7 +292,7 @@ char* ReadString(JsonBuffer* bPtr)
     while (buffer_can_advance(bPtr))
     {
         buffer_advance(bPtr);
-        if (buffer_at_cursor(bPtr) == '\"')
+        if (buffer_at_cursor(bPtr) == boundaryChar) //Or COmma - so theres the difficulty - it can be comma only in non string
         {
             isSuccess = true;
             break;
@@ -226,7 +327,7 @@ char* ReadNonString(JsonBuffer* bPtr)
     while (buffer_can_advance(bPtr))
     {
         buffer_advance(bPtr);
-        if (buffer_at_cursor(bPtr) == ' ') 
+        if (buffer_at_cursor(bPtr) == ' ')
         {
             isSuccess = true;
             break;
@@ -251,45 +352,6 @@ char* ReadNonString(JsonBuffer* bPtr)
     }
 }
 
-bool ParseString()
-{
-    //Read string
-    //assign string 
-    //set node type
-}
-
-
-
-/*This is basically a work allocation method, decides which strategy to use to parse the value*/
-bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
-{
-    bool isSuccess = false;
-    char* content = ReadNonString(bPtr);
-    if (content == NULL) return false;
-
-    if (content == "true")
-    {
-        valueNode->boolVal = true;
-        isSuccess = true;
-    }
-    else if (content == "false")
-    {
-        valueNode->boolVal = false;
-        isSuccess = true;
-    }
-    else if (char_is_numeric(content[strlent(content) - 1]))
-    {
-        isSuccess = ParseNumber(content, valueNode);
-    }
-    else isSuccess = false;
-
-    free(content);
-    return isSuccess;
-}
-
-
-
-
 /*Method creates the new node (whether it be object,scalar etc.. AND Reads the name.*/
 TreeNode* CreateNode(JsonBuffer* bPtr)
 {
@@ -309,6 +371,7 @@ TreeNode* CreateNode(JsonBuffer* bPtr)
 
 
 /*Attatches a child that we have just created into the array of a parent node*/
+//I'm thinking here we are wasting a lot of cycles - if we used pointer to an array of pointers we could create the nodes and just leave them where they are
 bool AttatchNodeToRoot(TreeNode* root, TreeNode* branch)
 {
     TreeNode* newSpace = malloc((root->branchCount + 1) * sizeof(TreeNode));
@@ -323,13 +386,6 @@ bool AttatchNodeToRoot(TreeNode* root, TreeNode* branch)
 
     /*Would like more error checking here*/
     return true;
-}
-
-
-
-bool ParseNumber() 
-{
-
 }
 
 
