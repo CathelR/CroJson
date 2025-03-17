@@ -12,7 +12,6 @@ bool GetFilePath(char* filePath)
     gets(filePath, 128, stdin);
     int filePathLen = strlen(filePath);
 
-    //Make better, get first 3 chars
     char pathRoot[3];
     pathRoot[0] = filePath[0];
     pathRoot[1] = filePath[1];
@@ -32,7 +31,6 @@ bool GetFilePath(char* filePath)
     }
     *ext = '\0';
 
-    //Arguable the loop value should come from the strn length
     for (int i = 1; i < 8; ++i)
     {
         char currChar = filePath[filePathLen - i];
@@ -55,7 +53,6 @@ bool GetFilePath(char* filePath)
     }
 
     free(ext);
-    //Always null your pointers
     ext = NULL;
 
     if (isValid)
@@ -74,19 +71,18 @@ char* GetFileContents( char filePath[])
     FILE* jsonFile = fopen(filePath, "r");
     if (jsonFile == NULL) {
         PrintErr("Not able to open the file.");
-        //return false;
+        return NULL;
     }
 
     long fileSize;
     if (fseek(jsonFile, 0, SEEK_END) == -1)
     {
         PrintErr("Couldn't Get File Size");
-        //return false;
+        return NULL;
     }
 
     fileSize = ftell(jsonFile);
     fseek(jsonFile, 0, SEEK_SET);
-    //CHunk is the line we've just read. Must be the size of the whole file in case there are no newlines
     char* jsonChunk = malloc(fileSize);
     jsonChunk[fileSize - 1] = '\0';
     char* jsonString = malloc(1);
@@ -98,13 +94,10 @@ char* GetFileContents( char filePath[])
         return NULL;
     }
 
-    //Most likely I will realloc and build hte string
-    //COUld actually reduce the size of chunk by the amount of each thing we read in, so the TOTAL size is never more than the file
     while (fgets(jsonChunk, fileSize, jsonFile)) {
         int lineLen = strlen(jsonChunk);
         jsonString = realloc(jsonString, lineLen + strlen(jsonString) + 1);
         strcat(jsonString, jsonChunk);
-        //realloc down by the same amount
     }
 
     fclose(jsonFile);

@@ -3,7 +3,10 @@
 
 
 
+
+
 /*
+* -> Used for the structure validation methoid which is currently on hold.
 bool IsQuoteValid(short, short);
 bool IsCommaValid(short, short);
 bool IsColonValid(short, short);

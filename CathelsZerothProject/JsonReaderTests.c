@@ -28,6 +28,8 @@ int main(int argc, char* argv[])
 	for (int i = 0;i < numTests;i++)
 	{
 		//Basically now it will be if we return null or not - Can also have some proper tests
+		//Best way to test would probably be to have some jsonTrees, and some dud versionsm and then check what the final parsing results are.
+		//Should be null for any invalid json, and correct for correct json
 		char validity = tests[i][strlen(tests[i]-1)];
 		printf("performing test: %s\n", tests[i]);
 		strcpy(filepath, "");

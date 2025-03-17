@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include "Utils.h" //Want to think about bringing everything in house since its only a couple
+
 #include "CroJson.h"
 
 /*
@@ -14,7 +14,7 @@ I'm writing this purely for my own learning so it is by no means fully featured,
 /*Struct Definitions*/
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
 
-//ENUM denotes the type of node we're working with - Dont think I need this now- type will be inherent in the strucutre of the tree
+/*Denotes the type of node we're working with*/
 enum NodeType
 {
     OBJECT,
@@ -48,7 +48,7 @@ typedef struct Error
 }Error;
 static Error gl_error;
 
-
+/*This stores the JsonString we're working with, and relevant processing information*/
 typedef struct JsonBuffer
 {
     char* jsonString;
@@ -59,7 +59,6 @@ typedef struct JsonBuffer
 /*==================================================================================================================================================*/
 
 
-
 /*Macro definition*/
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
 #define buffer_can_advance(buffer) (buffer->cursor+1<buffer->length)  
@@ -67,7 +66,6 @@ typedef struct JsonBuffer
 #define buffer_advance(buffer) (buffer->cursor++) 
 #define char_is_numeric(inChar) (inChar >= 48 && inChar <= 57)  
 /*==================================================================================================================================================*/
-
 
 
 /*Prototype declaration*/
@@ -86,16 +84,22 @@ void FreeNode(TreeNode*);
 
 
 /*
-Need to define some conventions :
+conventions :
 ---------------------------------
 ->Do we handle cursor advance at the called method or before it?  - The convention should be that each method leaves the cursor ready
  "so if this is the string"
                           ^ <-when returning, the cursor should be here
  
- 
-
- 
+ ->Each method is responsible for skipping it's own whitespace if its possible there will be any
 */
+
+/*
+TO DO :
+---------------------------------
+Make better use of error printing 
+Rebuild tests
+*/
+
 
 
 //Top level - Interface to recursive methods
@@ -222,7 +226,7 @@ char* ReadNonString(JsonBuffer* bPtr)
     while (buffer_can_advance(bPtr))
     {
         buffer_advance(bPtr);
-        if (buffer_at_cursor(bPtr) == ' ') //
+        if (buffer_at_cursor(bPtr) == ' ') 
         {
             isSuccess = true;
             break;
@@ -255,12 +259,9 @@ bool ParseString()
 }
 
 
-bool ConvertStringNumber(char* content, TreeNode* valueNode)
-{
 
-}
-
-bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode) //I am just returning true/false depending on whether it worked or not
+/*This is basically a work allocation method, decides which strategy to use to parse the value*/
+bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
 {
     bool isSuccess = false;
     char* content = ReadNonString(bPtr);
@@ -320,36 +321,15 @@ bool AttatchNodeToRoot(TreeNode* root, TreeNode* branch)
 
     *(root->branches + root->branchCount) = *branch; 
 
-    //NEED TO RETURN TRUE
+    /*Would like more error checking here*/
+    return true;
 }
 
 
 
-bool ParseNumber() //So now we will jsut assing to the relevant 
+bool ParseNumber() 
 {
-    int result = 0;
-    int multiplier = 1;
-    for (int i = strlen(input) - 1; i >= 0; i--)
-    {
-        if (char_is_numeric(input[i]))
-        {
-            result = result + ((input[i] - 48) * multiplier);
-            multiplier = multiplier * 10;
-            //Kind of need a size limit on this - not kind of - I do
-        }
-        else if (input[i] == '-' && i == 0)//I.e were at the first character
-        {
-            result = result * -1;
-        }
-        else if (input[i] == '.' && i != 0)
-        {
-            //Everything we have up till now should now be less than 1.
-        }
-        else return -666; //what? Do we do here - need a way to signal that there was a mistake
-    }
 
-    //What would be nice is if we had a way of just sending back anything an convertig to int if need be... like if we worked that out somehow...
-    return result;
 }
 
 
@@ -360,8 +340,8 @@ void FreeNode(TreeNode* node)
     {
         if (node->name != NULL) 
             free(node->name);
-        if (node->val != NULL) 
-            free(node->val);
+        if (node->stringVal != NULL) 
+            free(node->stringVal);
 
         for (int i = 0; i < node->branchCount; i++)
         {
@@ -411,9 +391,6 @@ void PrintError()
 
 //Old validation code approach - Will come back to this
 /*
-
-
-
 
 //Operates at one level of a JSON object. 
 int IsJsonObjectValid(char* jsonString, int cursorPos)

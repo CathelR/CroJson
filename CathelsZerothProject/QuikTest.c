@@ -27,11 +27,11 @@ bool ParseNumber(char* content)
 
     if (strstr(content, dot))
     {
-        floatVal = ParseFloat(&intVal);
+        floatVal = ParseFloat(content, &intVal);
     }
     else
     {
-        intVal = ParseInt();
+        intVal = ParseInt(content,&floatVal);
     }
 }
 
@@ -41,40 +41,41 @@ bool ParseInt(char* content, int* intValPtr)
 
 }
 
-bool ParseFloat(char* content, int* intValPtr)
+bool ParseFloat(char* content, int* floatValPtr)
 {
-    *intValPtr = ParseDigitString(content);
-
+    if (ParseDigitString(content, floatValPtr))
+        return true;
+    else return false;
 }
 
 
-//Needs to deal with dots. COuld use this as s component of a larger method...
-int ParseDigitString(char* input)
+/*This is the core number parsing logic - we always parse as a float, and if need an int, we cast it*/
+bool ParseDigitString(char* input, float* floatVal)
 {
-    int result = 0;
+    float result = 0;
     int multiplier = 1;
+    int decimalPos;
     for (int i = strlen(input)-1; i >= 0; i--)
     {
         if (char_is_numeric(input[i]))
         {
             result = result + ((input[i] - 48) * multiplier);
             multiplier = multiplier * 10;
-            //Kind of need a size limit on this - not kind of - I do
+            //Kind of need a size limit on this - There is a maximum size of int 
         }
         else if (input[i] == '-' && i == 0)//I.e were at the first character
         {
             result = result * -1;
+            //instead of doing this, is it possible to just change the bit? Maybe thats all that will happen anyway
         }
-        else if (input[i] == '.' && i != 0)
+        else if (input[i] == '.' && i != 0 )//need to check we dont have -.234 for example....
         {
-            //Everything we have up till now should now be less than 1.
-            //In order to add that as a decimal we need the first digit to be les sthan one, wihc means dividing the whole thing by x 
-            //e.g if we have 123, that  needs divided by 
+            decimalPos = i;
         }
-        else return -666; //what? Do we do here - need a way to signal that there was a mistake
-    }
+        else return false;
 
-    //What would be nice is if we had a way of just sending back anything an convertig to int if need be... like if we worked that out somehow...
-    return result;
-}
+        //So change exponsnent based on decimal position.
+    }
+    *floatVal = result;
+    return true;
 
