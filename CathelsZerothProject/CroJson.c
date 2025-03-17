@@ -97,7 +97,7 @@ conventions :
 TO DO :
 ---------------------------------
 Make better use of error printing 
-Rebuild tests
+Rebuild tests -> Unit for certain ones (like numbers) as well as Integration tests
 */
 
 
