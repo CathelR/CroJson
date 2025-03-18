@@ -33,6 +33,9 @@
     <ClCompile Include="CroJson.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CroJsonUnitTests.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utils.h">

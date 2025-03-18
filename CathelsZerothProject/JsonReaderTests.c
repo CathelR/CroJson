@@ -6,6 +6,7 @@
 
 int main(int argc, char* argv[])
 {
+	
 	char testDir[] = "C:\\Users\\CathelRobertson\\source\\ownRepos\\CathelsZerothProject\\JsonReaderTests\\";
 	char filepath[256];
 	int numTests = 13;

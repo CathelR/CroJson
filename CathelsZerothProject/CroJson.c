@@ -14,32 +14,10 @@ I'm writing this purely for my own learning so it is by no means fully featured,
 /*Struct Definitions*/
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
 
-/*Denotes the type of node we're working with*/
-enum NodeType
-{
-    OBJECT,
-    LIST,
-    BOOL,
-    INT,
-    FLOAT,
-    STRING
-};
 
 
-/*TreeNode is the building blocks of our tree
--> There is some reduncdancy where we stored different object types - could have been solved by using void pointers and allocating on the heap but it's extra complexity for little gain*/
-typedef struct TreeNode
-{
-    char* name;
-    enum NodeType nodeType;
-    bool boolVal;
-    int intVal;
-    float floatVal;
-    char* stringVal;
-    TreeNode* child;
-    TreeNode* arrNext;
 
-}TreeNode;
+
 
 
 typedef struct Error
@@ -49,21 +27,14 @@ typedef struct Error
 }Error;
 static Error gl_error;
 
-/*This stores the JsonString we're working with, and relevant processing information*/
-typedef struct JsonBuffer
-{
-    char* jsonString;
-    int cursor;
-    int length;
-    short callDepth;
-}JsonBuffer;
+
 /*==================================================================================================================================================*/
 
 
 /*Macro definition*/
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
 #define buffer_can_advance(buffer) (buffer->cursor+1<buffer->length)  
-#define buffer_at_cursor(buffer) (buffer->jsonString+buffer->cursor)
+#define buffer_at_cursor(buffer) (char)(buffer->jsonString+buffer->cursor)
 #define buffer_advance(buffer) (buffer->cursor++) 
 #define char_is_numeric(inChar) (inChar >= 48 && inChar <= 57)  
 /*==================================================================================================================================================*/
@@ -71,13 +42,7 @@ typedef struct JsonBuffer
 
 /*Prototype declaration*/
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
-bool ParseFloat(char*, float*);
-bool ParseInt(char*, int*);
-void PrintError();
-TreeNode* CreateNode(JsonBuffer*);
-bool AttatchNodeToRoot(TreeNode*, TreeNode*);
-void SkipWhiteSpace(JsonBuffer*);
-void FreeNode(TreeNode*);
+
 
 /*==================================================================================================================================================*/
 
@@ -96,11 +61,21 @@ conventions :
  ->Each method is responsible for skipping it's own whitespace if its possible there will be any
 */
 
+//Want to use bit flags
+//Want to use function pointers
+//Just for the sake of learning
 /*
 TO DO :
 ---------------------------------
-Make better use of error printing 
-Rebuild tests -> Unit for certain ones (like numbers) as well as Integration tests
+-Make better use of error printing 
+-Rebuild tests -> Unit for certain ones (like numbers) as well as Integration tests
+-Add support for escape characters
+-Need to decide when to call this done 
+    - not handling scientific numbers for now
+    - Will support escape characters
+    - Not handlin doubles
+    - Need to limit int numbers
+
 */
 
 
@@ -108,34 +83,36 @@ Rebuild tests -> Unit for certain ones (like numbers) as well as Integration tes
 //Top level - Interface to recursive methods
 TreeNode* GetJsonTree(char* jsonString)
 {   
-    TreeNode* rootNode = NULL;
+    TreeNode rootNode= { "root",OBJECT,false,0,0,NULL,NULL,NULL };
     JsonBuffer buffer = { jsonString, 0,strlen(jsonString),0 };
     JsonBuffer* bPtr = &buffer;
+    bool isSuccess;
     if (buffer_at_cursor(bPtr) == '{')
-    {
-        rootNode = {};
-        if (rootNode != NULL)
-        {
-            bPtr->cursor += 1; //Increase cursor to the next point
-            ParseObject(bPtr, rootNode);
-        }
-        
+    {        
+        bPtr->cursor += 1; //Increase cursor to the next point
+        isSuccess = ParseObject(bPtr, &rootNode);
     }
-    //Handle freeing up here? If fail? Doesn't workif we return null?
+    if (isSuccess) {
+        return &rootNode;
+    }
+    else {
+        return NULL; //Don't need to free because ahhhh rootNode exists in the stack so when the method returns, rootNode will be wiped. So could either return the while node, or set up in mem
+    }
 }
 
-
-bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the object created when we called parseValue
+/*gets the component values of an object, and attatches them to the root "object" node (relRoot)*/
+bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
 {
-    TreeNode* foci = relRoot;
+    //In the first instance I pass in a pointer to the roots objects "child" pointer
+    TreeNode** nextNodePtr = &(relRoot->child); 
     do
     {
-        if (ParseValue(bPtr, foci)) {
-            foci=?? //So the thing I pass in here needs to be the point at which I want to attatch the new node. &TreeNode*. Then *TreeNode* = whatever malloc returns
+        //Each subsequent call uses a pointer to the previous values "next" pointer
+        nextNodePtr = ParseValue(bPtr, nextNodePtr);
+        if (nextNodePtr == NULL) {
+            return false;
         }
-            
-        return false;
-
+        SkipWhiteSpace(bPtr);
     } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
 
     SkipWhiteSpace(bPtr);
@@ -143,54 +120,51 @@ bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the obj
     else return true;
 }
 
+
+/*->A value in this context is anything that has a name (as well as list items)
+Returns a pointer to the created nodes "next" pointer - basically the socket at which we attatched the next value*/
+TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket)
+{
+    SkipWhiteSpace(bPtr);
+    if (buffer_at_cursor(bPtr) == '"')
+    {
+        *socket = CreateNamedNode(bPtr);
+        if (*socket == NULL)
+            return NULL;
+    }
+    else return NULL;
+
+    SkipWhiteSpace(bPtr);
+    if (!buffer_at_cursor(bPtr) != ':')
+        return NULL;
+
+    SkipWhiteSpace(bPtr);
+    char currChar = buffer_at_cursor(bPtr);
+    switch (currChar)
+    {
+    case '{':
+        if (!ParseObject(bPtr, *socket))
+            return NULL;
+        break;
+    case '"':
+        if (!ParseString(bPtr, *socket))
+            return NULL;
+        break;
+    default:
+        if (!ParseNonString(bPtr, *socket))
+            return NULL;
+    }
+    return  &((*socket)->next);
+}
+
+
 /*Arrays are implemented at linked lists - the node pointer of each node points to the next item in the list*/
 TreeNode* ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the object created when we called parseValue
 {
     //do while cursor = ,
     //Add new thing to linked list
+    return NULL;
 }
-
-TreeNode* ParseValue(JsonBuffer* bPtr, TreeNode* root) //If I pass in the pointer to the pointer I don't have to worry about what type it is.
-{
-    SkipWhiteSpace(bPtr);
-
-    if (buffer_at_cursor(bPtr) == '"')
-    {
-        root = CreateNode(bPtr); //Simply put I want root to be the correct pointer for where I'm actually attatching it
-        if (root == NULL)
-            return false;
-    }
-    else return false;
-
-    SkipWhiteSpace(bPtr);
-    if (!buffer_at_cursor(bPtr) != ':')
-        return false;
-
-    SkipWhiteSpace(bPtr);
-
-    char currChar = buffer_at_cursor(bPtr);
-    switch (currChar)
-    {
-    case '{':
-        if (!ParseObject(bPtr, root))
-            return false;
-        break;
-    case '"':
-        if (!ParseString(bPtr, root))
-            return false;
-        break;
-    default:
-        if (!ParseNonString(bPtr, root))
-            return false;
-    }
-
-
-
-
-        return true;
-    else return false;
-}
-
 
 /*This is basically a work allocation method, decides which strategy to use to parse the value*/
 bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
@@ -199,25 +173,25 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
     char* content = ReadNonString(bPtr);//Still want that to be
     if (content == NULL) return false;
 
-    if (content == "true")
+    if (strcmp(content,"true")==0)
     {
         valueNode->boolVal = true;
         isSuccess = true;
     }
-    else if (content == "false")
+    else if (strcmp(content, "false") == 0)
     {
         valueNode->boolVal = false;
         isSuccess = true;
     }
-    else if (char_is_numeric(content[strlent(content) - 1]))
+    else if (char_is_numeric(content[strlen(content) - 1])) //Check the last char in the string, which will always be numeric for a number
     {
         if (strstr(content, "."))
         {
-            isSuccess = ParseFloat(content, &valueNode->floatVal);
+            isSuccess = ParseFloat(content, &(valueNode->floatVal));
         }
         else
         {
-            isSuccess = ParseInt(content, &valueNode->intVal);
+            isSuccess = ParseInt(content, &(valueNode->intVal));
         }
     }
     else isSuccess = false;
@@ -237,8 +211,6 @@ bool ParseString(JsonBuffer* bPtr, TreeNode* valueNode)
     }
     else return false;
 }
-
-
 
 
 /*This is essentially a decorator over the ParseFloat() method - converts the result to int*/
@@ -290,17 +262,16 @@ bool ParseFloat(char* input, float* floatValPtr)
 }
 
 /*Method to parse a string. Can be used for names as well as values*/
-char* ReadText(JsonBuffer* bPtr, char boundaryChar)
+char* ReadString(JsonBuffer* bPtr)
 {
-    SkipWhiteSpace(bPtr);
-    bPtr->cursor++; //Advance past first //But SKip WhiteSpace lands us on the next char - so we need a convention...
+    bPtr->cursor++;//Advance past opening quote
     char* string = malloc(bPtr->length - bPtr->cursor);
     int index = 0;
     bool isSuccess;
     while (buffer_can_advance(bPtr))
     {
         buffer_advance(bPtr);
-        if (buffer_at_cursor(bPtr) == boundaryChar) //Or COmma - so theres the difficulty - it can be comma only in non string
+        if (buffer_at_cursor(bPtr) == '\"') //Or COmma - so theres the difficulty - it can be comma only in non string
         {
             isSuccess = true;
             break;
@@ -325,7 +296,7 @@ char* ReadText(JsonBuffer* bPtr, char boundaryChar)
     }
 }
 
-
+/*There are a few differences between the ReadString and ReadNonString methods, which is why they are spearate, this does lead to some code repetition but its easier to read overall*/
 char* ReadNonString(JsonBuffer* bPtr)
 {
     char* content = malloc((bPtr->length - bPtr->cursor) * sizeof(char));
@@ -361,7 +332,7 @@ char* ReadNonString(JsonBuffer* bPtr)
 }
 
 /*Method creates the new node (whether it be object,scalar etc.. AND Reads the name.*/
-TreeNode* CreateNode(JsonBuffer* bPtr)
+TreeNode* CreateNamedNode(JsonBuffer* bPtr)
 {
     TreeNode* node = NULL;
     node = malloc(sizeof(TreeNode));
@@ -378,42 +349,29 @@ TreeNode* CreateNode(JsonBuffer* bPtr)
 }
 
 
-/*Attatches a child that we have just created into the array of a parent node*/
-//I'm thinking here we are wasting a lot of cycles - if we used pointer to an array of pointers we could create the nodes and just leave them where they are
-bool AttatchNodeToRoot(TreeNode* root, TreeNode* branch)
-{
-    TreeNode* newSpace = malloc((root->branchCount + 1) * sizeof(TreeNode));
-    if (newSpace == NULL)
-        return false;
-
-    memcpy(newSpace, root->branches, root->branchCount * sizeof(TreeNode)); //Do I need to error check this??? Is that maybe why he was using function hooks???
-    free(root->branches);
-    root->branches = newSpace;
-
-    *(root->branches + root->branchCount) = *branch; 
-
-    /*Would like more error checking here*/
-    return true;
-}
 
 
-
+/*Frees a node - uses recursive calls to free children/next nodes first*/
 void FreeNode(TreeNode* node)
 {
     if (node != NULL)
     {
+        if (node->child != NULL)
+        {
+            FreeNode(node->child);
+        }
+        if (node->next != NULL)
+        {
+            FreeNode(node->next); 
+        }
+
         if (node->name != NULL) 
             free(node->name);
         if (node->stringVal != NULL) 
             free(node->stringVal);
-
-        for (int i = 0; i < node->branchCount; i++)
-        {
-            FreeNode(node->branches + i);
-        }
-
         free(node);
     }
+    return;
 }
 
 
