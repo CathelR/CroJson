@@ -36,8 +36,9 @@ typedef struct TreeNode
     int intVal;
     float floatVal;
     char* stringVal;
-    int branchCount;
-    struct TreeNode* branches;
+    TreeNode* child;
+    TreeNode* arrNext;
+
 }TreeNode;
 
 
@@ -112,7 +113,7 @@ TreeNode* GetJsonTree(char* jsonString)
     JsonBuffer* bPtr = &buffer;
     if (buffer_at_cursor(bPtr) == '{')
     {
-        rootNode = {}
+        rootNode = {};
         if (rootNode != NULL)
         {
             bPtr->cursor += 1; //Increase cursor to the next point
@@ -126,9 +127,15 @@ TreeNode* GetJsonTree(char* jsonString)
 
 bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the object created when we called parseValue
 {
+    TreeNode* foci = relRoot;
     do
     {
-        if (ParseValue(bPtr, relRoot)) relRoot->branchCount++; //record that we have an extra branch now
+        if (ParseValue(bPtr, foci)) {
+            foci=?? //So the thing I pass in here needs to be the point at which I want to attatch the new node. &TreeNode*. Then *TreeNode* = whatever malloc returns
+        }
+            
+        return false;
+
     } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
 
     SkipWhiteSpace(bPtr);
@@ -143,19 +150,19 @@ TreeNode* ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the 
     //Add new thing to linked list
 }
 
-bool ParseValue(JsonBuffer* bPtr, TreeNode* relRoot)
+TreeNode* ParseValue(JsonBuffer* bPtr, TreeNode* root) //If I pass in the pointer to the pointer I don't have to worry about what type it is.
 {
     SkipWhiteSpace(bPtr);
-    TreeNode* node = NULL;
+
     if (buffer_at_cursor(bPtr) == '"')
     {
-        node = CreateNode(bPtr); //So create node reads the name, which means by the time we get back we should be ready to read the colon
-        if (node == NULL)
+        root = CreateNode(bPtr); //Simply put I want root to be the correct pointer for where I'm actually attatching it
+        if (root == NULL)
             return false;
     }
     else return false;
 
-    SkipWhiteSpace(bPtr);//Puts us ready to read...
+    SkipWhiteSpace(bPtr);
     if (!buffer_at_cursor(bPtr) != ':')
         return false;
 
@@ -165,19 +172,21 @@ bool ParseValue(JsonBuffer* bPtr, TreeNode* relRoot)
     switch (currChar)
     {
     case '{':
-        ParseObject(bPtr, node); //Needs the node we're working withj as Parse Object deals with whats in the  {}
+        if (!ParseObject(bPtr, root))
+            return false;
         break;
     case '"':
-        ParseString(bPtr, node);
+        if (!ParseString(bPtr, root))
+            return false;
         break;
-
     default:
-        ParseNonString(bPtr,node);
+        if (!ParseNonString(bPtr, root))
+            return false;
     }
-    bool attatchSuccess = AtatchNodeToRoot(relRoot, node);
-    
-    free(node);
-    if (attatchSuccess)
+
+
+
+
         return true;
     else return false;
 }
@@ -187,7 +196,7 @@ bool ParseValue(JsonBuffer* bPtr, TreeNode* relRoot)
 bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
 {
     bool isSuccess = false;
-    char* content = ReadNonString(bPtr);
+    char* content = ReadNonString(bPtr);//Still want that to be
     if (content == NULL) return false;
 
     if (content == "true")
@@ -210,7 +219,6 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
         {
             isSuccess = ParseInt(content, &valueNode->intVal);
         }
-        
     }
     else isSuccess = false;
 
