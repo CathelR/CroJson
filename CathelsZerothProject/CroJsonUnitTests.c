@@ -37,10 +37,9 @@ void ReadStringTests()
 	PrintTestsStart("ReadString");
 	/*For these tests we don't test what happens when */
 	JsonBuffer test1 = { "\"test1\"excess",0,13,0 };
-	JsonBuffer test2 = { "\"test2\"excess",0,13,0 };
+	JsonBuffer test2 = { "\"tes\\\"t2\"excess",0,15,0 };
 
 	JsonBuffer test3 = { "\"test3excess",0,12,0 };
-
 
 	char* result;
 	//Should work
@@ -60,16 +59,32 @@ void ReadStringTests()
 	}
 	free(result);
 
-
-	//Should Not Work
 	result = ReadString(&test2);
-	if (result == NULL)
+	if (result != NULL)
 	{
-		PrintSxs(2, true);
+		if (strcmp(result, "test2") == 0)
+			PrintSxs(2, true);
+		else {
+			PrintSxs(2, false);
+			PrintRes(result, P_STRING);
+		}
 	}
 	else
 	{
 		PrintSxs(2, false);
+	}
+	free(result);
+
+
+	//Should Not Work
+	result = ReadString(&test3);
+	if (result == NULL)
+	{
+		PrintSxs(3, true);
+	}
+	else
+	{
+		PrintSxs(3, false);
 	}
 
 

@@ -63,7 +63,7 @@ conventions :
 
 //Want to use bit flags
 //Want to use function pointers
-//Just for the sake of learning
+//Just for the sake of learning - types is the only thing I can see being good for bit flags - orrrr possible some strategy stuff??
 /*
 TO DO :
 ---------------------------------
@@ -73,10 +73,11 @@ TO DO :
 -ReadList
 -Add support for escape characters
 -Need to decide when to call this done 
-    - not handling scientific numbers for now
+    - should handle scientifc numbers?? Shouldnt be that hard actually...
+    - 
     - Will support escape characters
     - Not handlin doubles
-    - Need to limit int numbers
+    - Need to limit int numbers!!!
 -Error checking for memoryu allocation
 -Definetely no leaks? Must be memorytight
 */
@@ -271,19 +272,27 @@ char* ReadString(JsonBuffer* bPtr)
     char* string = malloc(bPtr->length - bPtr->cursor);
     int index = 0;
     bool isSuccess;
-    while (buffer_can_advance(bPtr))
+    while (buffer_can_advance(bPtr)) //It would be nice to swap the contents of this out for two sub methods, to avoid repetition - looks like nons trings dont need to worry about eascpe characters
     {
         buffer_advance(bPtr);
-        if (buffer_at_cursor(bPtr) == '\"') //Or COmma - so theres the difficulty - it can be comma only in non string // Could use a strategy here implemented by function pointer...
+        char currChar = buffer_at_cursor(bPtr);
+        switch (currChar)
         {
+        case'\"':
             isSuccess = true;
             break;
-        }
-        else
-        {
+        case '\\':
+            //Check esacpe sequence - what does that do? It means checking the next character, but that almost suggests that we could 
+            //So for certian things we need to add a particular character - dfferent behaviours based on waht we find - quite complex.
+            //Not so for values?? so it will be something like  - could almost return the character to add, if returns nothing, its badddddddd
+            //Could have a separate method that does it and performs the offset bump - Or could jsut move this whole thing out and do it there....
+            break;
+        default:
             *(string + index) = buffer_at_cursor(bPtr);
             index += 1;
+            break;
         }
+        if (isSuccess) break;
     }
 
     if (isSuccess)
