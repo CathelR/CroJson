@@ -34,7 +34,7 @@ static Error gl_error;
 /*Macro definition*/
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
 #define buffer_can_advance(buffer) (buffer->cursor+1<buffer->length)  
-#define buffer_at_cursor(buffer) (char)(buffer->jsonString+buffer->cursor)
+#define buffer_at_cursor(buffer) *(buffer->jsonString+buffer->cursor)
 #define buffer_advance(buffer) (buffer->cursor++) 
 #define char_is_numeric(inChar) (inChar >= 48 && inChar <= 57)  
 /*==================================================================================================================================================*/
@@ -77,7 +77,7 @@ TO DO :
     - Will support escape characters
     - Not handlin doubles
     - Need to limit int numbers
-
+-Error checking for memoryu allocation
 */
 
 
@@ -267,14 +267,13 @@ bool ParseFloat(char* input, float* floatValPtr)
 /*Method to parse a string. Can be used for names as well as values*/
 char* ReadString(JsonBuffer* bPtr)
 {
-    bPtr->cursor++;//Advance past opening quote
     char* string = malloc(bPtr->length - bPtr->cursor);
     int index = 0;
     bool isSuccess;
     while (buffer_can_advance(bPtr))
     {
         buffer_advance(bPtr);
-        if (buffer_at_cursor(bPtr) == '\"') //Or COmma - so theres the difficulty - it can be comma only in non string
+        if (buffer_at_cursor(bPtr) == '\"') //Or COmma - so theres the difficulty - it can be comma only in non string // Could use a strategy here implemented by function pointer...
         {
             isSuccess = true;
             break;
@@ -289,7 +288,7 @@ char* ReadString(JsonBuffer* bPtr)
     if (isSuccess)
     {
         *(string + index) = '\0';
-        string = realloc((strlen(string) + 1), sizeof(char));
+        string = realloc(string,(index+1) * sizeof(char));
         return string;
     }
     else
@@ -324,7 +323,7 @@ char* ReadNonString(JsonBuffer* bPtr)
     {
         /*Doesn't strictly need to be a string, but it's handy to have access to strlen*/
         *(content + index) = '\0';
-        content = realloc((strlen(content) + 1), sizeof(char));
+        content = realloc(content,(index+1)* sizeof(char));
         return content;
     }
     else

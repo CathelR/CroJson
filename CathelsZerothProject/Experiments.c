@@ -15,11 +15,16 @@ int main()
 {
 	char test1[] = "test";
 
-	
-	if (strcmp(test1,"test")==0)
+	char* testString = malloc(10 * sizeof(char));
+	for (int i = 0; i < 9; i++)
 	{
-		printf("Thatworked");
+		*(testString + i) = 'a';
+
 	}
+	*(testString + 9) = '\0';
+
+	printf("%c", testString+4);
+
 
 
     

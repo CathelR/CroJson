@@ -35,8 +35,12 @@ int main(int argc, char* argv[])
 void ReadStringTests()
 {
 	PrintTestsStart("ReadString");
+	/*For these tests we don't test what happens when */
 	JsonBuffer test1 = { "\"test1\"excess",0,13,0 };
-	JsonBuffer test2 = { "\"test1\"excess",0,13,0 };
+	JsonBuffer test2 = { "\"test2\"excess",0,13,0 };
+
+	JsonBuffer test3 = { "\"test3excess",0,12,0 };
+
 
 	char* result;
 	//Should work
@@ -54,21 +58,22 @@ void ReadStringTests()
 	{
 		PrintSxs(1, false);
 	}
+	free(result);
 
 
-	/*
 	//Should Not Work
-	if (ParseFloat(test7, &result) != true)
+	result = ReadString(&test2);
+	if (result == NULL)
 	{
-		PrintSxs(7, true);
+		PrintSxs(2, true);
 	}
 	else
 	{
-		PrintSxs(7, false);
+		PrintSxs(2, false);
 	}
+
+
 	PrintTestsEnd("ReadString");
-	return;
-	*/
 	return;
 }
 
