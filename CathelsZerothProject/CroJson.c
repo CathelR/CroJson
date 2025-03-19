@@ -78,6 +78,7 @@ TO DO :
     - Not handlin doubles
     - Need to limit int numbers
 -Error checking for memoryu allocation
+-Definetely no leaks? Must be memorytight
 */
 
 
