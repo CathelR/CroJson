@@ -69,6 +69,8 @@ TO DO :
 ---------------------------------
 -Make better use of error printing 
 -Rebuild tests -> Unit for certain ones (like numbers) as well as Integration tests
+-ReadString and  ReadNonString still need finished off
+-ReadList
 -Add support for escape characters
 -Need to decide when to call this done 
     - not handling scientific numbers for now
@@ -260,6 +262,7 @@ bool ParseFloat(char* input, float* floatValPtr)
     *floatValPtr = result;
     return true;
 }
+
 
 /*Method to parse a string. Can be used for names as well as values*/
 char* ReadString(JsonBuffer* bPtr)
