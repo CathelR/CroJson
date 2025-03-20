@@ -48,8 +48,9 @@ TreeNode** ParseValue(JsonBuffer*, TreeNode**);
 TreeNode* ParseList(JsonBuffer*, TreeNode*);
 bool ParseNonString(JsonBuffer*, TreeNode*);
 bool ParseString(JsonBuffer*, TreeNode*);
-char* ReadContent(JsonBuffer*);
-char* ReadNonString(JsonBuffer*);
+char* ReadContent(JsonBuffer*, bool (*CheckChar)(char, JsonBuffer*, char*, int*));
+bool CheckCharString(char, JsonBuffer*, char*, int*);
+bool CheckCharNonString(char, JsonBuffer*, char*, int*);
 TreeNode* CreateNamedNode(JsonBuffer*);
 
 

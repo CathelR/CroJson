@@ -80,6 +80,7 @@ TO DO :
     - Need to limit int numbers!!!
 -Error checking for memoryu allocation
 -Definetely no leaks? Must be memorytight
+-make static
 */
 
 
@@ -179,7 +180,7 @@ TreeNode* ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the 
 bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
 {
     bool isSuccess = false;
-    char* content = ReadContent(bPtr);
+    char* content = ReadContent(bPtr, &CheckCharNonString);
     if (content == NULL) return false;
 
     if (strcmp(content,"true")==0)
@@ -212,7 +213,7 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
 /*This is essentially a decorator over the ReadString() method. It handles the actual assignment - allows us to read string elsewhere*/
 bool ParseString(JsonBuffer* bPtr, TreeNode* valueNode)
 {
-    char* string = ReadContent(bPtr);
+    char* string = ReadContent(bPtr,&CheckCharString);
     if (string != NULL)
     {
         valueNode->stringVal = string;
@@ -271,18 +272,22 @@ bool ParseFloat(char* input, float* floatValPtr)
 }
 
 
-/*Method to parse a string. Can be used for names as well as values*/
+/*Method to read text - works for strings and non strings depending on checking method passed in*/
 char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(char, JsonBuffer*,char*,int*))
 {
     char* string = malloc(bPtr->length - bPtr->cursor);
     int index = 0;
     bool isSuccess;
+    /*Skip past the first quote mark*/
+    if (buffer_at_cursor(bPtr) == '\"' && buffer_can_advance(bPtr))
+    {
+        buffer_advance(bPtr);
+    }
 
     while (buffer_can_advance(bPtr))
     {
+        isSuccess = CheckChar(buffer_at_cursor(bPtr), bPtr, string, &index);
         buffer_advance(bPtr);
-        char currChar = buffer_at_cursor(bPtr);
-        isSuccess = CheckChar(currChar, bPtr, string, &index);
         if (isSuccess) break;
     }
 
@@ -300,9 +305,9 @@ char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(char, JsonBuffer*,char*,in
 }
 
 /*This is one possible strategy for reading content*/
-bool CheckCharString(char currChar,JsonBuffer* bPtr, char* string, int* index) //problem is to do this I have to pass a bunch of stuff in - not sure I like that
+bool CheckCharString(char currChar,JsonBuffer* bPtr, char* string, int* indexPtr) //problem is to do this I have to pass a bunch of stuff in - not sure I like that
 {
-    bool isSuccess;
+    bool isSuccess=false;
     switch (currChar)
     {
     case'\"':
@@ -313,16 +318,27 @@ bool CheckCharString(char currChar,JsonBuffer* bPtr, char* string, int* index) /
 
         break;
     default:
-        *(string + *index) = buffer_at_cursor(bPtr);//So I need to pass index, and a pointer to string
-        *index += 1;
+        *(string + *indexPtr) = currChar;//So I need to pass index, and a pointer to string
+        *indexPtr += 1;
         break;
     }
     return isSuccess;
 }
 
-void CheckCharNonString()
+/*We don't worry about whether the char is valid here, we're just looking to read content*/
+bool CheckCharNonString(char currChar, JsonBuffer* bPtr, char* content, int* indexPtr)
 {
-
+    bool isSuccess=false;
+    if (currChar == ' ' || currChar == ',')
+    {
+        isSuccess = true;
+    }
+    else
+    {
+        *(content + *indexPtr) = currChar;
+        *indexPtr += 1;
+    }
+    return isSuccess;
 }
 
 /*There are a few differences between the ReadString and ReadNonString methods, which is why they are spearate, this does lead to some code repetition but its easier to read overall*/
@@ -370,7 +386,7 @@ TreeNode* CreateNamedNode(JsonBuffer* bPtr)
     if (node == NULL)
         return NULL;
 
-    node->name = ReadContent(bPtr);
+    node->name = ReadContent(bPtr,&CheckCharString);
     if (node->name == NULL)
     {
         FreeNode(node);

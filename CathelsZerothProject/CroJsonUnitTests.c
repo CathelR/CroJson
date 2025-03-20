@@ -18,32 +18,35 @@ void PrintRes(void*, enum PrintType);
 
 void ParseIntTests();
 void ParseFloatTests();
-void ReadStringTests();
+void ReadContentTests();
 
 
 
 int main(int argc, char* argv[])
 {
+
 	ParseFloatTests();
 	ParseIntTests();
-	ReadStringTests();
-
+	ReadContentTests();
 	return 0;
 }
 
 
-void ReadStringTests()
+void ReadContentTests()
 {
-	PrintTestsStart("ReadString");
+	PrintTestsStart("ReadContent");
 	/*For these tests we don't test what happens when */
 	JsonBuffer test1 = { "\"test1\"excess",0,13,0 };
 	JsonBuffer test2 = { "\"tes\\\"t2\"excess",0,15,0 };
+	JsonBuffer test3 = { "test3 excess",0,12,0 };
+	JsonBuffer test4 = { "test4,excess",0,12,0 };
+	JsonBuffer test5 = { "\"test5\" excess",0,14,0 };
 
-	JsonBuffer test3 = { "\"test3excess",0,12,0 };
+	JsonBuffer test6 = { "\"test6excess",0,12,0 };
 
 	char* result;
 	//Should work
-	result = ReadString(&test1);
+	result = ReadContent(&test1,&CheckCharString);
 	if (result!=NULL)
 	{
 		if (strcmp(result,"test1")==0)
@@ -58,8 +61,8 @@ void ReadStringTests()
 		PrintSxs(1, false);
 	}
 	free(result);
-
-	result = ReadString(&test2);
+	//
+	result = ReadContent(&test2, &CheckCharString);
 	if (result != NULL)
 	{
 		if (strcmp(result, "test2") == 0)
@@ -74,21 +77,68 @@ void ReadStringTests()
 		PrintSxs(2, false);
 	}
 	free(result);
-
-
-	//Should Not Work
-	result = ReadString(&test3);
-	if (result == NULL)
+	//
+	result = ReadContent(&test3, &CheckCharNonString);
+	if (result != NULL)
 	{
-		PrintSxs(3, true);
+		if (strcmp(result, "test3") == 0)
+			PrintSxs(3, true);
+		else {
+			PrintSxs(3, false);
+			PrintRes(result, P_STRING);
+		}
 	}
 	else
 	{
 		PrintSxs(3, false);
 	}
+	free(result);
+	//
+	result = ReadContent(&test4, &CheckCharNonString);
+	if (result != NULL)
+	{
+		if (strcmp(result, "test4") == 0)
+			PrintSxs(4, true);
+		else {
+			PrintSxs(4, false);
+			PrintRes(result, P_STRING);
+		}
+	}
+	else
+	{
+		PrintSxs(4, false);
+	}
+	free(result);
+	//
+	result = ReadContent(&test5, &CheckCharNonString);
+	if (result != NULL)
+	{
+		if (strcmp(result, "test5\"") == 0)
+			PrintSxs(5, true);
+		else {
+			PrintSxs(5, false);
+			PrintRes(result, P_STRING);
+		}
+	}
+	else
+	{
+		PrintSxs(4, false);
+	}
+	free(result);
+
+	//Should Not Work
+	result = ReadContent(&test6, &CheckCharString);
+	if (result == NULL)
+	{
+		PrintSxs(6, true);
+	}
+	else
+	{
+		PrintSxs(6, false);
+	}
 
 
-	PrintTestsEnd("ReadString");
+	PrintTestsEnd("ReadContent");
 	return;
 }
 
