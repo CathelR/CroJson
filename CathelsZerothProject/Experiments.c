@@ -13,17 +13,20 @@ bool ParseInt(char*, int*);
 
 int main()
 {
-	char test1[] = "test";
+	char test1[] = "test\btest\n";
 
-	char* testString = malloc(10 * sizeof(char));
-	for (int i = 0; i < 9; i++)
-	{
-		*(testString + i) = 'a';
+	char test2[] = "test\\test\n";
 
-	}
-	*(testString + 9) = '\0';
+	char test3[] = "test\rest\n";
 
-	printf("%c", testString+4);
+	printf("\ntest1:\n");
+	printf("%s",test1);
+	printf("\ntest2:\n");
+	printf("%s", test2);
+	printf("\ntest3:\n");
+	printf("%s", test3);
+
+	
 
 
 

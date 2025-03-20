@@ -87,20 +87,25 @@ TO DO :
 //Top level - Interface to recursive methods
 TreeNode* GetJsonTree(char* jsonString)
 {   
-    TreeNode rootNode= { "root",OBJECT,false,0,0,NULL,NULL,NULL };
+    bool isSuccess=false;
+    /*Fine to use a local instance of JsonBuffer here as we're not reutrning it, its cleanup gets handled when the method returns*/
     JsonBuffer buffer = { jsonString, 0,strlen(jsonString),0 };
     JsonBuffer* bPtr = &buffer;
-    bool isSuccess;
+    TreeNode* root = malloc(sizeof(TreeNode));
+    if (root == NULL) return NULL;
+    
+    root->nodeType = OBJECT;
+    SkipWhiteSpace(bPtr);
     if (buffer_at_cursor(bPtr) == '{')
     {        
-        bPtr->cursor += 1; //Increase cursor to the next point
-        isSuccess = ParseObject(bPtr, &rootNode);
+        bPtr->cursor += 1; //Increase cursor to the next point - Does the parseobject method expect this?? Need to think about how tho handle
+        isSuccess = ParseObject(bPtr, root);
     }
     if (isSuccess) {
-        return &rootNode;
+        return root;
     }
     else {
-        return NULL; //Don't need to free because ahhhh rootNode exists in the stack so when the method returns, rootNode will be wiped. So could either return the while node, or set up in mem
+        return NULL;//Don't free rootNode obviously because we actually wan it
     }
 }
 
@@ -126,7 +131,7 @@ bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
 
 
 /*->A value in this context is anything that has a name (as well as list items)
-Returns a pointer to the created nodes "next" pointer - basically the socket at which we attatched the next value*/
+Returns a pointer to the created nodes "next" pointer - basically the socket at which we attatch the next value*/
 TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket)
 {
     SkipWhiteSpace(bPtr);
@@ -162,7 +167,7 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket)
 }
 
 
-/*Arrays are implemented at linked lists - the node pointer of each node points to the next item in the list*/
+/*Arrays are implemented as linked lists - the node pointer of each node points to the next item in the list*/
 TreeNode* ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the object created when we called parseValue
 {
     //do while cursor = ,
@@ -174,7 +179,7 @@ TreeNode* ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the 
 bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
 {
     bool isSuccess = false;
-    char* content = ReadNonString(bPtr);//Still want that to be
+    char* content = ReadContent(bPtr);
     if (content == NULL) return false;
 
     if (strcmp(content,"true")==0)
@@ -204,10 +209,10 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
     return isSuccess;
 }
 
-/*This is essentially a decorator over the ReadString method. It handles the actual assignment*/
+/*This is essentially a decorator over the ReadString() method. It handles the actual assignment - allows us to read string elsewhere*/
 bool ParseString(JsonBuffer* bPtr, TreeNode* valueNode)
 {
-    char* string = ReadString(bPtr);
+    char* string = ReadContent(bPtr);
     if (string != NULL)
     {
         valueNode->stringVal = string;
@@ -267,31 +272,17 @@ bool ParseFloat(char* input, float* floatValPtr)
 
 
 /*Method to parse a string. Can be used for names as well as values*/
-char* ReadString(JsonBuffer* bPtr)
+char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(char, JsonBuffer*,char*,int*))
 {
     char* string = malloc(bPtr->length - bPtr->cursor);
     int index = 0;
     bool isSuccess;
-    while (buffer_can_advance(bPtr)) //It would be nice to swap the contents of this out for two sub methods, to avoid repetition - looks like nons trings dont need to worry about eascpe characters
+
+    while (buffer_can_advance(bPtr))
     {
         buffer_advance(bPtr);
         char currChar = buffer_at_cursor(bPtr);
-        switch (currChar)
-        {
-        case'\"':
-            isSuccess = true;
-            break;
-        case '\\':
-            //Check esacpe sequence - what does that do? It means checking the next character, but that almost suggests that we could 
-            //So for certian things we need to add a particular character - dfferent behaviours based on waht we find - quite complex.
-            //Not so for values?? so it will be something like  - could almost return the character to add, if returns nothing, its badddddddd
-            //Could have a separate method that does it and performs the offset bump - Or could jsut move this whole thing out and do it there....
-            break;
-        default:
-            *(string + index) = buffer_at_cursor(bPtr);
-            index += 1;
-            break;
-        }
+        isSuccess = CheckChar(currChar, bPtr, string, &index);
         if (isSuccess) break;
     }
 
@@ -306,6 +297,32 @@ char* ReadString(JsonBuffer* bPtr)
         free(string);
         return NULL;
     }
+}
+
+/*This is one possible strategy for reading content*/
+bool CheckCharString(char currChar,JsonBuffer* bPtr, char* string, int* index) //problem is to do this I have to pass a bunch of stuff in - not sure I like that
+{
+    bool isSuccess;
+    switch (currChar)
+    {
+    case'\"':
+        isSuccess = true; //Could return this, saves passing in 
+        break;
+    case '\\':
+        //So either I set a flag to check this next time, or I allow this method to take control of cursor advance briefly
+
+        break;
+    default:
+        *(string + *index) = buffer_at_cursor(bPtr);//So I need to pass index, and a pointer to string
+        *index += 1;
+        break;
+    }
+    return isSuccess;
+}
+
+void CheckCharNonString()
+{
+
 }
 
 /*There are a few differences between the ReadString and ReadNonString methods, which is why they are spearate, this does lead to some code repetition but its easier to read overall*/
@@ -343,6 +360,8 @@ char* ReadNonString(JsonBuffer* bPtr)
     }
 }
 
+
+
 /*Method creates the new node (whether it be object,scalar etc.. AND Reads the name.*/
 TreeNode* CreateNamedNode(JsonBuffer* bPtr)
 {
@@ -351,7 +370,7 @@ TreeNode* CreateNamedNode(JsonBuffer* bPtr)
     if (node == NULL)
         return NULL;
 
-    node->name = ReadString(bPtr);
+    node->name = ReadContent(bPtr);
     if (node->name == NULL)
     {
         FreeNode(node);
@@ -359,8 +378,6 @@ TreeNode* CreateNamedNode(JsonBuffer* bPtr)
     }
     return node;
 }
-
-
 
 
 /*Frees a node - uses recursive calls to free children/next nodes first*/

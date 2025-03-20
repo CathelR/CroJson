@@ -34,6 +34,7 @@ typedef struct JsonBuffer
     short callDepth;
 }JsonBuffer;
 
+
 bool ParseFloat(char*, float*);
 bool ParseInt(char*, int*);
 void PrintError();
@@ -47,7 +48,7 @@ TreeNode** ParseValue(JsonBuffer*, TreeNode**);
 TreeNode* ParseList(JsonBuffer*, TreeNode*);
 bool ParseNonString(JsonBuffer*, TreeNode*);
 bool ParseString(JsonBuffer*, TreeNode*);
-char* ReadString(JsonBuffer*);
+char* ReadContent(JsonBuffer*);
 char* ReadNonString(JsonBuffer*);
 TreeNode* CreateNamedNode(JsonBuffer*);
 
