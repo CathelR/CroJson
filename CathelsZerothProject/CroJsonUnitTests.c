@@ -37,12 +37,19 @@ void ReadContentTests()
 	PrintTestsStart("ReadContent");
 	/*For these tests we don't test what happens when */
 	JsonBuffer test1 = { "\"test1\"excess",0,13,0 };
-	JsonBuffer test2 = { "\"tes\\\"t2\"excess",0,15,0 };
-	JsonBuffer test3 = { "test3 excess",0,12,0 };
-	JsonBuffer test4 = { "test4,excess",0,12,0 };
-	JsonBuffer test5 = { "\"test5\" excess",0,14,0 };
+	JsonBuffer test2 = { "\"test2\\\"",0,7,0 };
+	JsonBuffer test3 = { "\"tes\\bt2\"excess",0,15,0 };
+	JsonBuffer test4 = { "\"tes\\ft2\"excess",0,15,0 };
+	JsonBuffer test5 = { "\"tes\\nt2\"excess",0,15,0 };
+	JsonBuffer test6 = { "\"tes\\rt2\"excess",0,15,0 };
+	JsonBuffer test7 = { "\"tes\\tt2\"excess",0,15,0 };
 
-	JsonBuffer test6 = { "\"test6excess",0,12,0 };
+	JsonBuffer test8 = { "test8 excess",0,12,0 };
+	JsonBuffer test9 = { "test9,excess",0,12,0 };
+	JsonBuffer test10 = { "\"test10\" excess",0,14,0 };
+
+	JsonBuffer test11 = { "\"test6excess",0,12,0 };
+	JsonBuffer test12 = { "\"tes\\2\"excess",0,13,0 };
 
 	char* result;
 	//Should work
@@ -65,7 +72,7 @@ void ReadContentTests()
 	result = ReadContent(&test2, &CheckCharString);
 	if (result != NULL)
 	{
-		if (strcmp(result, "test2") == 0)
+		if (strcmp(result, "test2\"") == 0)
 			PrintSxs(2, true);
 		else {
 			PrintSxs(2, false);
@@ -78,10 +85,10 @@ void ReadContentTests()
 	}
 	free(result);
 	//
-	result = ReadContent(&test3, &CheckCharNonString);
+	result = ReadContent(&test3, &CheckCharString);
 	if (result != NULL)
 	{
-		if (strcmp(result, "test3") == 0)
+		if (strcmp(result, "tes\bt2") == 0)
 			PrintSxs(3, true);
 		else {
 			PrintSxs(3, false);
@@ -94,10 +101,10 @@ void ReadContentTests()
 	}
 	free(result);
 	//
-	result = ReadContent(&test4, &CheckCharNonString);
+	result = ReadContent(&test4, &CheckCharString);
 	if (result != NULL)
 	{
-		if (strcmp(result, "test4") == 0)
+		if (strcmp(result, "tes\ft2") == 0)
 			PrintSxs(4, true);
 		else {
 			PrintSxs(4, false);
@@ -110,10 +117,10 @@ void ReadContentTests()
 	}
 	free(result);
 	//
-	result = ReadContent(&test5, &CheckCharNonString);
+	result = ReadContent(&test5, &CheckCharString);
 	if (result != NULL)
 	{
-		if (strcmp(result, "test5\"") == 0)
+		if (strcmp(result, "tes\nt2") == 0)
 			PrintSxs(5, true);
 		else {
 			PrintSxs(5, false);
@@ -122,19 +129,112 @@ void ReadContentTests()
 	}
 	else
 	{
-		PrintSxs(4, false);
+		PrintSxs(5, false);
 	}
 	free(result);
-
-	//Should Not Work
+	//
 	result = ReadContent(&test6, &CheckCharString);
-	if (result == NULL)
+	if (result != NULL)
 	{
-		PrintSxs(6, true);
+		if (strcmp(result, "tes\rt2") == 0)
+			PrintSxs(6, true);
+		else {
+			PrintSxs(6, false);
+			PrintRes(result, P_STRING);
+		}
 	}
 	else
 	{
 		PrintSxs(6, false);
+	}
+	free(result);
+	//
+	result = ReadContent(&test7, &CheckCharString);
+	if (result != NULL)
+	{
+		if (strcmp(result, "tes\tt2") == 0)
+			PrintSxs(7, true);
+		else {
+			PrintSxs(7, false);
+			PrintRes(result, P_STRING);
+		}
+	}
+	else
+	{
+		PrintSxs(7, false);
+	}
+	free(result);
+
+
+	//Non String
+	result = ReadContent(&test8, &CheckCharNonString);
+	if (result != NULL)
+	{
+		if (strcmp(result, "test8") == 0)
+			PrintSxs(8, true);
+		else {
+			PrintSxs(8, false);
+			PrintRes(result, P_STRING);
+		}
+	}
+	else
+	{
+		PrintSxs(8, false);
+	}
+	free(result);
+	//
+	result = ReadContent(&test9, &CheckCharNonString);
+	if (result != NULL)
+	{
+		if (strcmp(result, "test9") == 0)
+			PrintSxs(9, true);
+		else {
+			PrintSxs(9, false);
+			PrintRes(result, P_STRING);
+		}
+	}
+	else
+	{
+		PrintSxs(9, false);
+	}
+	free(result);
+	//
+	result = ReadContent(&test10, &CheckCharNonString);
+	if (result != NULL)
+	{
+		if (strcmp(result, "\"test10\"") == 0)
+			PrintSxs(10, true);
+		else {
+			PrintSxs(10, false);
+			PrintRes(result, P_STRING);
+		}
+	}
+	else
+	{
+		PrintSxs(10, false);
+	}
+	free(result);
+
+	//Should Not Work
+	result = ReadContent(&test11, &CheckCharString);
+	if (result == NULL)
+	{
+		PrintSxs(11, true);
+	}
+	else
+	{
+		PrintSxs(11, false);
+	}
+
+	//Should Not Work
+	result = ReadContent(&test12, &CheckCharString);
+	if (result == NULL)
+	{
+		PrintSxs(12, true);
+	}
+	else
+	{
+		PrintSxs(12, false);
 	}
 
 

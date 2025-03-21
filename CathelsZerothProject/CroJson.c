@@ -72,7 +72,6 @@ TO DO :
     - Not handlin doubles
     - Need to limit int numbers!!!
 -Error checking for memoryu allocation
--Definetely no leaks? Must be memorytight
 -make static
 */
 
@@ -131,7 +130,8 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket)
     SkipWhiteSpace(bPtr);
     if (buffer_at_cursor(bPtr) == '"')
     {
-        *socket = CreateNamedNode(bPtr);
+        *socket = CreateNamedNode(bPtr); //Would be better if I just called a method to create the node and then another to name the node - only thing is the actual read
+        //logic is differnt whe nI'm not reading a name
         if (*socket == NULL)
             return NULL;
     }
@@ -162,11 +162,9 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket)
 
 
 /*Arrays are implemented as linked lists - the node pointer of each node points to the next item in the list*/
-TreeNode* ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the object created when we called parseValue
+bool ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the object created when we called parseValue
 {
-    //do while cursor = ,
-    //Add new thing to linked list
-    return NULL;
+return true;
 }
 
 /*This is basically a work allocation method, decides which strategy to use to parse the value*/
@@ -266,21 +264,15 @@ bool ParseFloat(char* input, float* floatValPtr)
 
 
 /*Method to read text - works for strings and non strings depending on checking method passed in*/
-char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(char, JsonBuffer*,char*,int*))
+char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(JsonBuffer*,char*,int*))
 {
     char* string = malloc(bPtr->length - bPtr->cursor);
     int index = 0;
     bool isSuccess;
-    /*Skip past the first quote mark - no danger of mis-interpreting valuessince if we have a quote at this pos, we're already interpreting as a string*/
-    if (buffer_at_cursor(bPtr) == '\"' && buffer_can_advance(bPtr))
-    {
-        buffer_advance(bPtr);
-    }
 
     while (buffer_can_advance(bPtr))
     {
-        isSuccess = CheckChar(buffer_at_cursor(bPtr), bPtr, string, &index);
-        buffer_advance(bPtr);
+        isSuccess = CheckChar(bPtr, string, &index);
         if (isSuccess) break;
     }
 
@@ -299,16 +291,50 @@ char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(char, JsonBuffer*,char*,in
 
 //So whats a good strategy then? we have 3 states - exploring bitwise flags as an option isFinished + isValid
 /*This is one possible strategy for reading content*/
-bool CheckCharString(char currChar,JsonBuffer* bPtr, char* content, int* indexPtr) //problem is to do this I have to pass a bunch of stuff in - not sure I like that
+/*Not super happy with the nested switch case here - could have been done neater...*/
+bool CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr)
 {
+    buffer_advance(bPtr);
+    char currChar = buffer_at_cursor(bPtr); //Would need some persistent record of  using special char, which I really dont like
     bool isSuccess=false;
     switch (currChar)
     {
     case'\"':
-        isSuccess = true; //Could return this, saves passing in 
+        isSuccess = true; 
         break;
     case '\\':
-        //So it will be something like a method to check for a given character
+        if (buffer_can_advance(bPtr))
+        {
+            buffer_advance(bPtr);
+            currChar = buffer_at_cursor(bPtr);
+            switch (currChar)
+            {
+            case '\"':
+                AddCharToContent('\"', content, indexPtr);
+                break;
+            case '\\':
+                AddCharToContent('\\', content, indexPtr);
+                break;
+            case 'b':
+                AddCharToContent('\b', content, indexPtr);
+                break;
+            case 'f':
+                AddCharToContent('\f', content, indexPtr);
+                break;
+            case 'n':
+                AddCharToContent('\n', content, indexPtr);
+                break;
+            case 'r':
+                AddCharToContent('\r', content, indexPtr);
+                break;
+            case 't':
+                AddCharToContent('\t', content, indexPtr);
+                break;
+            default:
+                //throw error...
+                break;
+            }
+        }
         break;
     default:
         AddCharToContent(currChar, content, indexPtr);
@@ -317,9 +343,12 @@ bool CheckCharString(char currChar,JsonBuffer* bPtr, char* content, int* indexPt
     return isSuccess;
 }
 
+
+
 /*We don't worry about whether the char is valid here, we're just looking to read content*/
-bool CheckCharNonString(char currChar, JsonBuffer* bPtr, char* content, int* indexPtr)
+bool CheckCharNonString(JsonBuffer* bPtr, char* content, int* indexPtr)
 {
+    char currChar = buffer_at_cursor(bPtr);
     bool isSuccess=false;
     if (currChar == ' ' || currChar == ',')
     {
@@ -329,8 +358,11 @@ bool CheckCharNonString(char currChar, JsonBuffer* bPtr, char* content, int* ind
     {
         AddCharToContent(currChar, content, indexPtr);
     }
+    buffer_advance(bPtr);
     return isSuccess;
 }
+
+
 
 void AddCharToContent(char currChar, char* string, int* indexPtr)
 {
