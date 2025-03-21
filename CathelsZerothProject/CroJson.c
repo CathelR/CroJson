@@ -17,9 +17,6 @@ I'm writing this purely for my own learning so it is by no means fully featured,
 
 
 
-
-
-
 typedef struct Error
 {
     char errorMessage[256];
@@ -30,21 +27,17 @@ static Error gl_error;
 
 /*==================================================================================================================================================*/
 
-
 /*Macro definition*/
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
 #define buffer_can_advance(buffer) (buffer->cursor+1<buffer->length)  
 #define buffer_at_cursor(buffer) *(buffer->jsonString+buffer->cursor)
 #define buffer_advance(buffer) (buffer->cursor++) 
 #define char_is_numeric(inChar) (inChar >= 48 && inChar <= 57)  
+
+#define process_finished (1<<0)
+#define process_success (1<<1)
 /*==================================================================================================================================================*/
 
-
-/*Prototype declaration*/
-/*--------------------------------------------------------------------------------------------------------------------------------------------------*/
-
-
-/*==================================================================================================================================================*/
 
 
 /*Json Methods*/
@@ -278,7 +271,7 @@ char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(char, JsonBuffer*,char*,in
     char* string = malloc(bPtr->length - bPtr->cursor);
     int index = 0;
     bool isSuccess;
-    /*Skip past the first quote mark*/
+    /*Skip past the first quote mark - no danger of mis-interpreting valuessince if we have a quote at this pos, we're already interpreting as a string*/
     if (buffer_at_cursor(bPtr) == '\"' && buffer_can_advance(bPtr))
     {
         buffer_advance(bPtr);
@@ -304,8 +297,9 @@ char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(char, JsonBuffer*,char*,in
     }
 }
 
+//So whats a good strategy then? we have 3 states - exploring bitwise flags as an option isFinished + isValid
 /*This is one possible strategy for reading content*/
-bool CheckCharString(char currChar,JsonBuffer* bPtr, char* string, int* indexPtr) //problem is to do this I have to pass a bunch of stuff in - not sure I like that
+bool CheckCharString(char currChar,JsonBuffer* bPtr, char* content, int* indexPtr) //problem is to do this I have to pass a bunch of stuff in - not sure I like that
 {
     bool isSuccess=false;
     switch (currChar)
@@ -314,12 +308,10 @@ bool CheckCharString(char currChar,JsonBuffer* bPtr, char* string, int* indexPtr
         isSuccess = true; //Could return this, saves passing in 
         break;
     case '\\':
-        //So either I set a flag to check this next time, or I allow this method to take control of cursor advance briefly
-
+        //So it will be something like a method to check for a given character
         break;
     default:
-        *(string + *indexPtr) = currChar;//So I need to pass index, and a pointer to string
-        *indexPtr += 1;
+        AddCharToContent(currChar, content, indexPtr);
         break;
     }
     return isSuccess;
@@ -335,45 +327,16 @@ bool CheckCharNonString(char currChar, JsonBuffer* bPtr, char* content, int* ind
     }
     else
     {
-        *(content + *indexPtr) = currChar;
-        *indexPtr += 1;
+        AddCharToContent(currChar, content, indexPtr);
     }
     return isSuccess;
 }
 
-/*There are a few differences between the ReadString and ReadNonString methods, which is why they are spearate, this does lead to some code repetition but its easier to read overall*/
-char* ReadNonString(JsonBuffer* bPtr)
+void AddCharToContent(char currChar, char* string, int* indexPtr)
 {
-    char* content = malloc((bPtr->length - bPtr->cursor) * sizeof(char));
-    bool isSuccess;
-    int index = 0;
-    SkipWhiteSpace(bPtr);
-    while (buffer_can_advance(bPtr))
-    {
-        buffer_advance(bPtr);
-        if (buffer_at_cursor(bPtr) == ' ')
-        {
-            isSuccess = true;
-            break;
-        }
-        else
-        {
-            *(content + index) = buffer_at_cursor(bPtr);
-            index += 1;
-        }
-    }
-    if (isSuccess)
-    {
-        /*Doesn't strictly need to be a string, but it's handy to have access to strlen*/
-        *(content + index) = '\0';
-        content = realloc(content,(index+1)* sizeof(char));
-        return content;
-    }
-    else
-    {
-        free(content);
-        return NULL;
-    }
+    *(string + *indexPtr) = currChar;
+    *indexPtr += 1;
+    return;
 }
 
 

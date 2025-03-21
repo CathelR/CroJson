@@ -52,6 +52,7 @@ char* ReadContent(JsonBuffer*, bool (*CheckChar)(char, JsonBuffer*, char*, int*)
 bool CheckCharString(char, JsonBuffer*, char*, int*);
 bool CheckCharNonString(char, JsonBuffer*, char*, int*);
 TreeNode* CreateNamedNode(JsonBuffer*);
+void AddCharToContent(char, char*, int*);
 
 
 
