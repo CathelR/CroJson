@@ -14,6 +14,10 @@ I'm writing this purely for my own learning so it is by no means fully featured,
 /*Struct Definitions*/
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
 
+typedef struct BitFlags
+{
+    unsigned int flags: 8;
+}BitFlags;
 
 
 
@@ -268,15 +272,17 @@ char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(JsonBuffer*,char*,int*))
 {
     char* string = malloc(bPtr->length - bPtr->cursor);
     int index = 0;
-    bool isSuccess;
-
+    bool isSuccess;//Wont be using this anymore
+    unsigned int readFinished = (1 << 0);
+    unsigned int isSuccess = (1 << 1);
+    BitFlags flags;
     while (buffer_can_advance(bPtr))
     {
-        isSuccess = CheckChar(bPtr, string, &index);
-        if (isSuccess) break;
+        isSuccess = CheckChar(bPtr, string, &index); //So want to change this to using bit flags on SUnday
+        if (isSuccess) break; //if ReadFinished
     }
 
-    if (isSuccess)
+    if (isSuccess)  //if isSuccess (bit flag)
     {
         *(string + index) = '\0';
         string = realloc(string,(index+1) * sizeof(char));
@@ -290,13 +296,15 @@ char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(JsonBuffer*,char*,int*))
 }
 
 //So whats a good strategy then? we have 3 states - exploring bitwise flags as an option isFinished + isValid
+//Only thing is we're wasting 8 bits... Turns out actually a bool is 8 bits anway
 /*This is one possible strategy for reading content*/
 /*Not super happy with the nested switch case here - could have been done neater...*/
 bool CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr)
 {
     buffer_advance(bPtr);
-    char currChar = buffer_at_cursor(bPtr); //Would need some persistent record of  using special char, which I really dont like
+    char currChar = buffer_at_cursor(bPtr);
     bool isSuccess=false;
+    //Insead of using bool, use a byte[]
     switch (currChar)
     {
     case'\"':
@@ -331,7 +339,7 @@ bool CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr)
                 AddCharToContent('\t', content, indexPtr);
                 break;
             default:
-                //throw error...
+                //So here it will be readFnisnihed = true isSuccess= false
                 break;
             }
         }
@@ -340,17 +348,17 @@ bool CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr)
         AddCharToContent(currChar, content, indexPtr);
         break;
     }
-    return isSuccess;
+    return isSuccess; //Return bitFlags
 }
 
 
-
+//Do we have any failr conditions for this???
 /*We don't worry about whether the char is valid here, we're just looking to read content*/
 bool CheckCharNonString(JsonBuffer* bPtr, char* content, int* indexPtr)
 {
     char currChar = buffer_at_cursor(bPtr);
     bool isSuccess=false;
-    if (currChar == ' ' || currChar == ',')
+    if (currChar == ' ' || currChar == ',' || currChar == '}' || currChar == ']')//?Surely?What about if theres no comma and no space?? We should decalre a macro to check for val end characters?
     {
         isSuccess = true;
     }
@@ -373,7 +381,7 @@ void AddCharToContent(char currChar, char* string, int* indexPtr)
 
 
 
-/*Method creates the new node (whether it be object,scalar etc.. AND Reads the name.*/
+/*Method creates the new node (whether it be object,scalar etc.. AND Reads the name.*///Thats a bit of a problem actually - will need to come back to that
 TreeNode* CreateNamedNode(JsonBuffer* bPtr)
 {
     TreeNode* node = NULL;

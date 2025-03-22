@@ -24,10 +24,10 @@ void ReadContentTests();
 
 int main(int argc, char* argv[])
 {
-
 	ParseFloatTests();
 	ParseIntTests();
 	ReadContentTests();
+
 	return 0;
 }
 
@@ -37,7 +37,7 @@ void ReadContentTests()
 	PrintTestsStart("ReadContent");
 	/*For these tests we don't test what happens when */
 	JsonBuffer test1 = { "\"test1\"excess",0,13,0 };
-	JsonBuffer test2 = { "\"test2\\\"",0,7,0 };
+	JsonBuffer test2 = { "\"tes\\\"t2\"",0,9,0 };
 	JsonBuffer test3 = { "\"tes\\bt2\"excess",0,15,0 };
 	JsonBuffer test4 = { "\"tes\\ft2\"excess",0,15,0 };
 	JsonBuffer test5 = { "\"tes\\nt2\"excess",0,15,0 };
@@ -72,7 +72,7 @@ void ReadContentTests()
 	result = ReadContent(&test2, &CheckCharString);
 	if (result != NULL)
 	{
-		if (strcmp(result, "test2\"") == 0)
+		if (strcmp(result, "tes\"t2") == 0)
 			PrintSxs(2, true);
 		else {
 			PrintSxs(2, false);
