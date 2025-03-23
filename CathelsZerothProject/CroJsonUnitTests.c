@@ -19,6 +19,7 @@ void PrintRes(void*, enum PrintType);
 void ParseIntTests();
 void ParseFloatTests();
 void ReadContentTests();
+void ParseNonStringTests();
 
 
 
@@ -27,9 +28,138 @@ int main(int argc, char* argv[])
 	ParseFloatTests();
 	ParseIntTests();
 	ReadContentTests();
+	ParseNonStringTests();
 
 	return 0;
 }
+
+
+void ParseNonStringTests()
+{
+	PrintTestsStart("ParseNonString");
+	TreeNode* node = malloc(sizeof(TreeNode));
+	if (node == NULL)
+	{
+		printf("memory allocation failure");
+		return;
+	}
+		
+
+	char test1[] = "true,";
+	char test2[] = "false ";
+	char test3[] = "999 ";
+	char test4[] = "99.99} ";
+	char test5[] = ",";
+	char test6[] = "32a321]";
+
+
+	JsonBuffer testBuff1 = { test1,0,strlen(test1),0 };
+	if (ParseNonString(&testBuff1, node))
+	{
+		if (node->boolVal == true)
+		{
+			PrintSxs(1, true);
+		}
+		else
+		{
+			PrintSxs(1, false);
+		}
+	}
+	else
+	{
+		PrintSxs(1, false);
+	}
+	//------------------------------------------------
+	JsonBuffer testBuff2 = { test2,0,strlen(test2),0 };
+	if (ParseNonString(&testBuff2, node))
+	{
+		if (node->boolVal == false)
+		{
+			PrintSxs(2, true);
+		}
+		else
+		{
+			PrintSxs(2, false);
+		}
+	}
+	else
+	{
+		PrintSxs(2, false);
+	}
+	//------------------------------------------------
+	JsonBuffer testBuff3 = { test3,0,strlen(test3),0 };
+	if (ParseNonString(&testBuff3, node))
+	{
+		if (node->intVal == 999)
+		{
+			PrintSxs(3, true);
+		}
+		else
+		{
+			PrintSxs(3, false);
+			PrintRes(&(node->intVal), P_INT);
+		}
+	}
+	else
+	{
+		PrintSxs(3, false);
+	}
+	//------------------------------------------------
+	JsonBuffer testBuff4 = { test4,0,strlen(test4),0 };
+	if (ParseNonString(&testBuff4, node))
+	{
+		if (node->floatVal == (float)99.99)
+		{
+			PrintSxs(4, true);
+		}
+		else
+		{
+			PrintSxs(4, false);
+			PrintRes(&(node->floatVal), P_FLOAT);
+		}
+	}
+	else
+	{
+		PrintSxs(4, false);
+	}
+
+
+	//Shouldnt work
+	JsonBuffer testBuff5 = { test5,0,strlen(test5),0 };
+	if (ParseNonString(&testBuff5, node))
+	{	
+		PrintSxs(5, false);
+	}
+	else
+	{
+		PrintSxs(5, true);
+	}
+
+	//------------------------------------------------
+	JsonBuffer testBuff6 = { test6,0,strlen(test6),0 };
+	if (ParseNonString(&testBuff6, node))
+	{
+		PrintSxs(6, false);
+	}
+	else
+	{
+		PrintSxs(6, true);
+	}
+
+	PrintTestsEnd("ParseNonString");
+	return;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 void ReadContentTests()

@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-
 #include "CroJson.h"
 
 /*
@@ -13,12 +12,6 @@ I'm writing this purely for my own learning so it is by no means fully featured,
 
 /*Struct Definitions*/
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
-
-typedef struct BitFlags
-{
-    unsigned int flags: 8;
-}BitFlags;
-
 
 
 typedef struct Error
@@ -38,8 +31,8 @@ static Error gl_error;
 #define buffer_advance(buffer) (buffer->cursor++) 
 #define char_is_numeric(inChar) (inChar >= 48 && inChar <= 57)  
 
-#define process_finished (1<<0)
-#define process_success (1<<1)
+#define read_finished (1<<0)
+#define read_success (1<<1)
 /*==================================================================================================================================================*/
 
 
@@ -49,33 +42,16 @@ static Error gl_error;
 
 
 /*
-conventions :
----------------------------------
-->Do we handle cursor advance at the called method or before it?  - The convention should be that each method leaves the cursor ready
- "so if this is the string"
-                          ^ <-when returning, the cursor should be here
- 
- ->Each method is responsible for skipping it's own whitespace if its possible there will be any
-*/
-
-//Want to use bit flags
-//Want to use function pointers
-//Just for the sake of learning - types is the only thing I can see being good for bit flags - orrrr possible some strategy stuff??
-/*
 TO DO :
 ---------------------------------
 -Make better use of error printing 
 -Rebuild tests -> Unit for certain ones (like numbers) as well as Integration tests
--ReadString and  ReadNonString still need finished off
--ReadList
--Add support for escape characters
 -Need to decide when to call this done 
     - should handle scientifc numbers?? Shouldnt be that hard actually...
-    - 
-    - Will support escape characters
     - Not handlin doubles
     - Need to limit int numbers!!!
 -Error checking for memoryu allocation
+-Final chekc for unsafe code
 -make static
 */
 
@@ -90,8 +66,7 @@ TreeNode* GetJsonTree(char* jsonString)
     JsonBuffer* bPtr = &buffer;
     TreeNode* root = malloc(sizeof(TreeNode));
     if (root == NULL) return NULL;
-    
-    root->nodeType = OBJECT;
+   
     SkipWhiteSpace(bPtr);
     if (buffer_at_cursor(bPtr) == '{')
     {        
@@ -109,12 +84,13 @@ TreeNode* GetJsonTree(char* jsonString)
 /*gets the component values of an object, and attatches them to the root "object" node (relRoot)*/
 bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
 {
+    relRoot->nodeType = OBJECT;
     //In the first instance I pass in a pointer to the roots objects "child" pointer
     TreeNode** nextNodePtr = &(relRoot->child); 
     do
     {
         //Each subsequent call uses a pointer to the previous values "next" pointer
-        nextNodePtr = ParseValue(bPtr, nextNodePtr);
+        nextNodePtr = ParseValue(bPtr, nextNodePtr, true);
         if (nextNodePtr == NULL) {
             return false;
         }
@@ -129,17 +105,19 @@ bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
 
 /*->A value in this context is anything that has a name (as well as list items)
 Returns a pointer to the created nodes "next" pointer - basically the socket at which we attatch the next value*/
-TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket)
+TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
 {
-    SkipWhiteSpace(bPtr);
-    if (buffer_at_cursor(bPtr) == '"')
+    *socket = malloc(sizeof(TreeNode));
+    if (*socket == NULL) return NULL;
+
+    if (shouldReadName)
     {
-        *socket = CreateNamedNode(bPtr); //Would be better if I just called a method to create the node and then another to name the node - only thing is the actual read
-        //logic is differnt whe nI'm not reading a name
-        if (*socket == NULL)
+        if (!ReadValueName(bPtr, *socket))
+        {
             return NULL;
+        }
     }
-    else return NULL;
+
 
     SkipWhiteSpace(bPtr);
     if (!buffer_at_cursor(bPtr) != ':')
@@ -151,6 +129,10 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket)
     {
     case '{':
         if (!ParseObject(bPtr, *socket))
+            return NULL;
+        break;
+    case '[':
+        if (!ParseList(bPtr, *socket))
             return NULL;
         break;
     case '"':
@@ -168,7 +150,22 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket)
 /*Arrays are implemented as linked lists - the node pointer of each node points to the next item in the list*/
 bool ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the object created when we called parseValue
 {
-return true;
+    relRoot->nodeType = LIST;
+    //In the first instance I pass in a pointer to the roots objects "child" pointer
+    TreeNode** nextNodePtr = &(relRoot->child);
+    do
+    {
+        //Each subsequent call uses a pointer to the previous values "next" pointer
+        nextNodePtr = ParseValue(bPtr, nextNodePtr, false);
+        if (nextNodePtr == NULL) {
+            return false;
+        }
+        SkipWhiteSpace(bPtr);
+    } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
+
+    SkipWhiteSpace(bPtr);
+    if (!buffer_at_cursor(bPtr) == ']') return false;
+    else return true;
 }
 
 /*This is basically a work allocation method, decides which strategy to use to parse the value*/
@@ -177,27 +174,31 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
     bool isSuccess = false;
     char* content = ReadContent(bPtr, &CheckCharNonString);
     if (content == NULL) return false;
-
     if (strcmp(content,"true")==0)
     {
         valueNode->boolVal = true;
+        valueNode->nodeType = BOOL;
         isSuccess = true;
     }
     else if (strcmp(content, "false") == 0)
     {
         valueNode->boolVal = false;
+        valueNode->nodeType = BOOL;
         isSuccess = true;
     }
     else if (char_is_numeric(content[strlen(content) - 1])) //Check the last char in the string, which will always be numeric for a number
     {
         if (strstr(content, "."))
         {
+            valueNode->nodeType = FLOAT;
             isSuccess = ParseFloat(content, &(valueNode->floatVal));
         }
         else
         {
+            valueNode->nodeType = INT;
             isSuccess = ParseInt(content, &(valueNode->intVal));
         }
+        
     }
     else isSuccess = false;
 
@@ -212,6 +213,7 @@ bool ParseString(JsonBuffer* bPtr, TreeNode* valueNode)
     if (string != NULL)
     {
         valueNode->stringVal = string;
+        valueNode->nodeType = STRING;
         return true;
     }
     else return false;
@@ -249,7 +251,6 @@ bool ParseFloat(char* input, float* floatValPtr)
         else if (input[i] == '-' && i == 0)
         {
             result = result * -1;
-            //TO DO: instead of doing this, just change the bit
         }
         else if (input[i] == '.' && hasDecPoint == false)
         {
@@ -266,23 +267,21 @@ bool ParseFloat(char* input, float* floatValPtr)
     return true;
 }
 
-
+//"":, - for a non string, we immediately return - fine, for a non string...?
 /*Method to read text - works for strings and non strings depending on checking method passed in*/
-char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(JsonBuffer*,char*,int*))
+char* ReadContent(JsonBuffer* bPtr, void (*CheckChar)(JsonBuffer*,char*,int*, Byte*))
 {
     char* string = malloc(bPtr->length - bPtr->cursor);
     int index = 0;
-    bool isSuccess;//Wont be using this anymore
-    unsigned int readFinished = (1 << 0);
-    unsigned int isSuccess = (1 << 1);
-    BitFlags flags;
+    Byte byte;
+    byte.flags = 0;
     while (buffer_can_advance(bPtr))
     {
-        isSuccess = CheckChar(bPtr, string, &index); //So want to change this to using bit flags on SUnday
-        if (isSuccess) break; //if ReadFinished
+        CheckChar(bPtr, string, &index, &byte);
+        if (byte.flags & read_finished) break;
     }
 
-    if (isSuccess)  //if isSuccess (bit flag)
+    if (byte.flags & read_success) 
     {
         *(string + index) = '\0';
         string = realloc(string,(index+1) * sizeof(char));
@@ -295,20 +294,19 @@ char* ReadContent(JsonBuffer* bPtr, bool (*CheckChar)(JsonBuffer*,char*,int*))
     }
 }
 
-//So whats a good strategy then? we have 3 states - exploring bitwise flags as an option isFinished + isValid
-//Only thing is we're wasting 8 bits... Turns out actually a bool is 8 bits anway
+
 /*This is one possible strategy for reading content*/
 /*Not super happy with the nested switch case here - could have been done neater...*/
-bool CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr)
+void CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr, Byte* byte)
 {
     buffer_advance(bPtr);
     char currChar = buffer_at_cursor(bPtr);
-    bool isSuccess=false;
-    //Insead of using bool, use a byte[]
+  
     switch (currChar)
     {
     case'\"':
-        isSuccess = true; 
+        byte->flags = byte->flags | read_finished;
+        byte->flags = byte->flags | read_success;
         break;
     case '\\':
         if (buffer_can_advance(bPtr))
@@ -339,7 +337,7 @@ bool CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr)
                 AddCharToContent('\t', content, indexPtr);
                 break;
             default:
-                //So here it will be readFnisnihed = true isSuccess= false
+                byte->flags = byte->flags | read_finished;
                 break;
             }
         }
@@ -348,26 +346,26 @@ bool CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr)
         AddCharToContent(currChar, content, indexPtr);
         break;
     }
-    return isSuccess; //Return bitFlags
+    return;
 }
 
 
-//Do we have any failr conditions for this???
+
 /*We don't worry about whether the char is valid here, we're just looking to read content*/
-bool CheckCharNonString(JsonBuffer* bPtr, char* content, int* indexPtr)
+void CheckCharNonString(JsonBuffer* bPtr, char* content, int* indexPtr, Byte* byte)
 {
     char currChar = buffer_at_cursor(bPtr);
-    bool isSuccess=false;
-    if (currChar == ' ' || currChar == ',' || currChar == '}' || currChar == ']')//?Surely?What about if theres no comma and no space?? We should decalre a macro to check for val end characters?
+    if (currChar == ' ' || currChar == ',' || currChar == '}' || currChar == ']')
     {
-        isSuccess = true;
+        byte->flags = byte->flags | read_finished;
+        byte->flags = byte->flags | read_success;
     }
     else
     {
         AddCharToContent(currChar, content, indexPtr);
     }
-    buffer_advance(bPtr);
-    return isSuccess;
+    buffer_advance(bPtr);//This causes an issue if theres no further chars to read-because we wont do the while loop and wont have read the char weve just adfvanced toooooo..
+    return;
 }
 
 
@@ -380,24 +378,23 @@ void AddCharToContent(char currChar, char* string, int* indexPtr)
 }
 
 
-
-/*Method creates the new node (whether it be object,scalar etc.. AND Reads the name.*///Thats a bit of a problem actually - will need to come back to that
-TreeNode* CreateNamedNode(JsonBuffer* bPtr)
+/*Reads and assigns name to a node - if its an object*/
+bool ReadValueName(JsonBuffer* bPtr, TreeNode* nodeToName)
 {
-    TreeNode* node = NULL;
-    node = malloc(sizeof(TreeNode));
-    if (node == NULL)
-        return NULL;
-
-    node->name = ReadContent(bPtr,&CheckCharString);
-    if (node->name == NULL)
+    bool isSuccess = false;
+    SkipWhiteSpace(bPtr);
+    if (buffer_at_cursor(bPtr) == '"')
     {
-        FreeNode(node);
-        return NULL;
+        nodeToName->name = ReadContent(bPtr, &CheckCharString);
+        if (nodeToName->name != NULL)
+        {
+            isSuccess = true;
+        }
     }
-    return node;
-}
+        FreeNode(nodeToName);//????
 
+    return isSuccess;
+}
 
 /*Frees a node - uses recursive calls to free children/next nodes first*/
 void FreeNode(TreeNode* node)

@@ -34,6 +34,11 @@ typedef struct JsonBuffer
     short callDepth;
 }JsonBuffer;
 
+typedef struct Byte
+{
+    unsigned int flags : 8;
+}Byte;
+
 
 bool ParseFloat(char*, float*);
 bool ParseInt(char*, int*);
@@ -44,14 +49,14 @@ void SkipWhiteSpace(JsonBuffer*);
 void FreeNode(TreeNode*);
 TreeNode* GetJsonTree(char*);
 bool ParseObject(JsonBuffer*, TreeNode*);
-TreeNode** ParseValue(JsonBuffer*, TreeNode**);
+TreeNode** ParseValue(JsonBuffer*, TreeNode**, bool);
 bool ParseList(JsonBuffer*, TreeNode*);
 bool ParseNonString(JsonBuffer*, TreeNode*);
 bool ParseString(JsonBuffer*, TreeNode*);
-char* ReadContent(JsonBuffer*, bool (*CheckChar)(JsonBuffer*, char*, int*));
-bool CheckCharString(JsonBuffer*, char*, int*);
-bool CheckCharNonString(JsonBuffer*, char*, int*);
-TreeNode* CreateNamedNode(JsonBuffer*);
+char* ReadContent(JsonBuffer*, void (*CheckChar)(JsonBuffer*, char*, int*, Byte*));
+void CheckCharString(JsonBuffer*, char*, int*, Byte*);
+void CheckCharNonString(JsonBuffer*, char*, int*, Byte*);
+bool ReadValueName(JsonBuffer*, TreeNode*);
 void AddCharToContent(char, char*, int*);
 
 
