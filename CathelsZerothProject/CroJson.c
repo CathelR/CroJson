@@ -28,6 +28,7 @@ static Error gl_error;
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
 #define buffer_can_advance(buffer) (buffer->cursor+1<buffer->length)  
 #define buffer_at_cursor(buffer) *(buffer->jsonString+buffer->cursor)
+#define buffer_at_offset(buffer, offset) (buffer->cursor+offset<buffer->length)? *(buffer->jsonString+buffer->cursor+offset) : -1
 #define buffer_advance(buffer) (buffer->cursor++) 
 #define char_is_numeric(inChar) (inChar >= 48 && inChar <= 57)  
 
@@ -68,8 +69,8 @@ TreeNode* GetJsonTree(char* jsonString)
     TreeNode* root = malloc(sizeof(TreeNode));
     if (root == NULL) return NULL;
    
-    SkipWhiteSpace(bPtr,true);
-    if (buffer_at_cursor(bPtr) == '{')
+    SkipWhiteSpace(bPtr);
+    if (buffer_at_offset(bPtr,1) == '{')
     {        
         bPtr->cursor += 1; //Increase cursor to the next point - Does the parseobject method expect this?? Need to think about how tho handle
         isSuccess = ParseObject(bPtr, root);
@@ -95,10 +96,10 @@ bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
         if (nextNodePtr == NULL) {
             return false;
         }
-        SkipWhiteSpace(bPtr,false);
-    } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
+        SkipWhiteSpace(bPtr);
+    } while (buffer_at_offset(bPtr,1) == ','); //Because after parsing each value we should have a comma
 
-    SkipWhiteSpace(bPtr,true);
+    SkipWhiteSpace(bPtr);
     if (!buffer_at_cursor(bPtr) == '}') return false;
     else return true;
 }
@@ -120,12 +121,12 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
     }
 
 
-    SkipWhiteSpace(bPtr,true);
-    if (!buffer_at_cursor(bPtr) != ':')
+    SkipWhiteSpace(bPtr);
+    if (!buffer_at_offset(bPtr,1) != ':')
         return NULL;
 
-    SkipWhiteSpace(bPtr,true);
-    char currChar = buffer_at_cursor(bPtr);
+    SkipWhiteSpace(bPtr);
+    char currChar = buffer_at_offset(bPtr,1);
     switch (currChar)
     {
     case '{':
@@ -161,11 +162,11 @@ bool ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the objec
         if (nextNodePtr == NULL) {
             return false;
         }
-        SkipWhiteSpace(bPtr,false);
-    } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
+        SkipWhiteSpace(bPtr);
+    } while (buffer_at_offset(bPtr,1) == ','); //Because after parsing each value we should have a comma
 
-    SkipWhiteSpace(bPtr,true);
-    if (!buffer_at_cursor(bPtr) == ']') return false;
+    SkipWhiteSpace(bPtr);
+    if (!buffer_at_offset(bPtr,1) == ']') return false;
     else return true;
 }
 
@@ -174,7 +175,7 @@ bool ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the objec
 bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
 {
     bool isSuccess = false;
-    char* content = ReadContent(bPtr, &CheckCharNonString);
+    char* content = ReadContent(bPtr, false);
     if (content == NULL) return false;
     if (strcmp(content,"true")==0)
     {
@@ -211,7 +212,7 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
 /*This is essentially a decorator over the ReadString() method. It handles the actual assignment - allows us to read string elsewhere*/
 bool ParseString(JsonBuffer* bPtr, TreeNode* valueNode)
 {
-    char* string = ReadContent(bPtr,&CheckCharString);
+    char* string = ReadContent(bPtr,true);
     if (string != NULL)
     {
         valueNode->stringVal = string;
@@ -278,7 +279,7 @@ char* ReadContent(JsonBuffer* bPtr, bool isString)
     Byte byte;
     byte.flags = 0;
     void (*CheckChar)(JsonBuffer*, char*, int*, Byte*);
-
+    
     if (isString)
     {
         CheckChar = &CheckCharString;
@@ -291,10 +292,9 @@ char* ReadContent(JsonBuffer* bPtr, bool isString)
     {
         CheckChar = &CheckCharNonString;
     }
-
     while (buffer_can_advance(bPtr))
     {
-        buffer_advance(bPtr);
+        buffer_advance(bPtr); /*Need to advance before checking, otherwise we lose the last character in the string*/
         CheckChar(bPtr, string, &index, &byte);
         if (byte.flags & read_finished) break;
     }
@@ -317,9 +317,7 @@ char* ReadContent(JsonBuffer* bPtr, bool isString)
 /*Not super happy with the nested switch case here - could have been done neater...*/
 void CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr, Byte* byte)
 {
-    buffer_advance(bPtr);
     char currChar = buffer_at_cursor(bPtr);
-  
     switch (currChar)
     {
     case'\"':
@@ -329,6 +327,7 @@ void CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr, Byte* byte)
     case '\\':
         if (buffer_can_advance(bPtr))
         {
+            buffer_advance(bPtr);
             currChar = buffer_at_cursor(bPtr);
             switch (currChar)
             {
@@ -398,16 +397,19 @@ void AddCharToContent(char currChar, char* string, int* indexPtr)
 bool ReadValueName(JsonBuffer* bPtr, TreeNode* nodeToName)
 {
     bool isSuccess = false;
-    SkipWhiteSpace(bPtr, true);
-    if (buffer_at_cursor(bPtr) == '"')
+    SkipWhiteSpace(bPtr);
+    if (buffer_can_advance(bPtr))
     {
-        nodeToName->name = ReadContent(bPtr, &CheckCharString);
-        if (nodeToName->name != NULL)
-        {
-            isSuccess = true;
-        }
+        if (!buffer_at_offset(bPtr,1) == '\"')
+            return false;
     }
-    FreeNode(nodeToName);//????
+    nodeToName->name = ReadContent(bPtr, true);
+    if (nodeToName->name != NULL)
+    {
+        isSuccess = true;
+    }
+    
+    //FreeNode(nodeToName);//????
 
     return isSuccess;
 }
@@ -436,11 +438,12 @@ void FreeNode(TreeNode* node)
 }
 
 
-void SkipWhiteSpace(JsonBuffer* bPtr, bool advanceRead)
+void SkipWhiteSpace(JsonBuffer* bPtr)
 {
     while (buffer_can_advance(bPtr))
     {
-        if (*(bPtr->jsonString+bPtr->cursor + 1) <= 32)
+        char currChar = buffer_at_offset(bPtr, 1);
+        if (currChar <= 32 && currChar>=0)
         {
             buffer_advance(bPtr);
         }
@@ -448,10 +451,6 @@ void SkipWhiteSpace(JsonBuffer* bPtr, bool advanceRead)
         {
             break;
         }
-    }
-    if (advanceRead)
-    {
-        bPtr->cursor++;
     }
 }
 

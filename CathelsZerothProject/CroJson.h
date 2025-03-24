@@ -45,7 +45,7 @@ bool ParseInt(char*, int*);
 void PrintError();
 TreeNode* CreateNamedNode(JsonBuffer*);
 bool AttatchNodeToRoot(TreeNode*, TreeNode*);
-void SkipWhiteSpace(JsonBuffer*,bool);
+void SkipWhiteSpace(JsonBuffer*);
 void FreeNode(TreeNode*);
 TreeNode* GetJsonTree(char*);
 bool ParseObject(JsonBuffer*, TreeNode*);
