@@ -183,7 +183,7 @@ void ReadContentTests()
 
 	char* result;
 	//Should work
-	result = ReadContent(&test1,&CheckCharString);
+	result = ReadContent(&test1,&CheckCharString,true);
 	if (result!=NULL)
 	{
 		if (strcmp(result,"test1")==0)
@@ -199,7 +199,7 @@ void ReadContentTests()
 	}
 	free(result);
 	//
-	result = ReadContent(&test2, &CheckCharString);
+	result = ReadContent(&test2, &CheckCharString,true);
 	if (result != NULL)
 	{
 		if (strcmp(result, "tes\"t2") == 0)
@@ -215,7 +215,7 @@ void ReadContentTests()
 	}
 	free(result);
 	//
-	result = ReadContent(&test3, &CheckCharString);
+	result = ReadContent(&test3, &CheckCharString,true);
 	if (result != NULL)
 	{
 		if (strcmp(result, "tes\bt2") == 0)
@@ -231,7 +231,7 @@ void ReadContentTests()
 	}
 	free(result);
 	//
-	result = ReadContent(&test4, &CheckCharString);
+	result = ReadContent(&test4, &CheckCharString,true);
 	if (result != NULL)
 	{
 		if (strcmp(result, "tes\ft2") == 0)
@@ -247,7 +247,7 @@ void ReadContentTests()
 	}
 	free(result);
 	//
-	result = ReadContent(&test5, &CheckCharString);
+	result = ReadContent(&test5, &CheckCharString,true);
 	if (result != NULL)
 	{
 		if (strcmp(result, "tes\nt2") == 0)
@@ -263,7 +263,7 @@ void ReadContentTests()
 	}
 	free(result);
 	//
-	result = ReadContent(&test6, &CheckCharString);
+	result = ReadContent(&test6, &CheckCharString,true);
 	if (result != NULL)
 	{
 		if (strcmp(result, "tes\rt2") == 0)
@@ -279,7 +279,7 @@ void ReadContentTests()
 	}
 	free(result);
 	//
-	result = ReadContent(&test7, &CheckCharString);
+	result = ReadContent(&test7, &CheckCharString,true);
 	if (result != NULL)
 	{
 		if (strcmp(result, "tes\tt2") == 0)
@@ -297,7 +297,7 @@ void ReadContentTests()
 
 
 	//Non String
-	result = ReadContent(&test8, &CheckCharNonString);
+	result = ReadContent(&test8, &CheckCharNonString,false);
 	if (result != NULL)
 	{
 		if (strcmp(result, "test8") == 0)
@@ -313,7 +313,7 @@ void ReadContentTests()
 	}
 	free(result);
 	//
-	result = ReadContent(&test9, &CheckCharNonString);
+	result = ReadContent(&test9, &CheckCharNonString,false);
 	if (result != NULL)
 	{
 		if (strcmp(result, "test9") == 0)
@@ -329,7 +329,7 @@ void ReadContentTests()
 	}
 	free(result);
 	//
-	result = ReadContent(&test10, &CheckCharNonString);
+	result = ReadContent(&test10, &CheckCharNonString,false);
 	if (result != NULL)
 	{
 		if (strcmp(result, "\"test10\"") == 0)
@@ -346,7 +346,7 @@ void ReadContentTests()
 	free(result);
 
 	//Should Not Work
-	result = ReadContent(&test11, &CheckCharString);
+	result = ReadContent(&test11, &CheckCharString,true);
 	if (result == NULL)
 	{
 		PrintSxs(11, true);
@@ -357,7 +357,7 @@ void ReadContentTests()
 	}
 
 	//Should Not Work
-	result = ReadContent(&test12, &CheckCharString);
+	result = ReadContent(&test12, &CheckCharString,true);
 	if (result == NULL)
 	{
 		PrintSxs(12, true);

@@ -53,6 +53,7 @@ TO DO :
 -Error checking for memoryu allocation
 -Final chekc for unsafe code
 -make static
+-//"":, - for a non string, we immediately return - fine, for a non string...?
 */
 
 
@@ -67,7 +68,7 @@ TreeNode* GetJsonTree(char* jsonString)
     TreeNode* root = malloc(sizeof(TreeNode));
     if (root == NULL) return NULL;
    
-    SkipWhiteSpace(bPtr);
+    SkipWhiteSpace(bPtr,true);
     if (buffer_at_cursor(bPtr) == '{')
     {        
         bPtr->cursor += 1; //Increase cursor to the next point - Does the parseobject method expect this?? Need to think about how tho handle
@@ -94,10 +95,10 @@ bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
         if (nextNodePtr == NULL) {
             return false;
         }
-        SkipWhiteSpace(bPtr);
+        SkipWhiteSpace(bPtr,false);
     } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
 
-    SkipWhiteSpace(bPtr);
+    SkipWhiteSpace(bPtr,true);
     if (!buffer_at_cursor(bPtr) == '}') return false;
     else return true;
 }
@@ -119,11 +120,11 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
     }
 
 
-    SkipWhiteSpace(bPtr);
+    SkipWhiteSpace(bPtr,true);
     if (!buffer_at_cursor(bPtr) != ':')
         return NULL;
 
-    SkipWhiteSpace(bPtr);
+    SkipWhiteSpace(bPtr,true);
     char currChar = buffer_at_cursor(bPtr);
     switch (currChar)
     {
@@ -160,13 +161,14 @@ bool ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the objec
         if (nextNodePtr == NULL) {
             return false;
         }
-        SkipWhiteSpace(bPtr);
+        SkipWhiteSpace(bPtr,false);
     } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
 
-    SkipWhiteSpace(bPtr);
+    SkipWhiteSpace(bPtr,true);
     if (!buffer_at_cursor(bPtr) == ']') return false;
     else return true;
 }
+
 
 /*This is basically a work allocation method, decides which strategy to use to parse the value*/
 bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
@@ -269,14 +271,30 @@ bool ParseFloat(char* input, float* floatValPtr)
 
 //"":, - for a non string, we immediately return - fine, for a non string...?
 /*Method to read text - works for strings and non strings depending on checking method passed in*/
-char* ReadContent(JsonBuffer* bPtr, void (*CheckChar)(JsonBuffer*,char*,int*, Byte*))
+char* ReadContent(JsonBuffer* bPtr, bool isString)
 {
     char* string = malloc(bPtr->length - bPtr->cursor);
     int index = 0;
     Byte byte;
     byte.flags = 0;
+    void (*CheckChar)(JsonBuffer*, char*, int*, Byte*);
+
+    if (isString)
+    {
+        CheckChar = &CheckCharString;
+        if (buffer_can_advance(bPtr))
+        {
+            buffer_advance(bPtr);
+        }
+    }
+    else
+    {
+        CheckChar = &CheckCharNonString;
+    }
+
     while (buffer_can_advance(bPtr))
     {
+        buffer_advance(bPtr);
         CheckChar(bPtr, string, &index, &byte);
         if (byte.flags & read_finished) break;
     }
@@ -311,7 +329,6 @@ void CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr, Byte* byte)
     case '\\':
         if (buffer_can_advance(bPtr))
         {
-            buffer_advance(bPtr);
             currChar = buffer_at_cursor(bPtr);
             switch (currChar)
             {
@@ -364,7 +381,6 @@ void CheckCharNonString(JsonBuffer* bPtr, char* content, int* indexPtr, Byte* by
     {
         AddCharToContent(currChar, content, indexPtr);
     }
-    buffer_advance(bPtr);//This causes an issue if theres no further chars to read-because we wont do the while loop and wont have read the char weve just adfvanced toooooo..
     return;
 }
 
@@ -382,7 +398,7 @@ void AddCharToContent(char currChar, char* string, int* indexPtr)
 bool ReadValueName(JsonBuffer* bPtr, TreeNode* nodeToName)
 {
     bool isSuccess = false;
-    SkipWhiteSpace(bPtr);
+    SkipWhiteSpace(bPtr, true);
     if (buffer_at_cursor(bPtr) == '"')
     {
         nodeToName->name = ReadContent(bPtr, &CheckCharString);
@@ -391,7 +407,7 @@ bool ReadValueName(JsonBuffer* bPtr, TreeNode* nodeToName)
             isSuccess = true;
         }
     }
-        FreeNode(nodeToName);//????
+    FreeNode(nodeToName);//????
 
     return isSuccess;
 }
@@ -407,12 +423,12 @@ void FreeNode(TreeNode* node)
         }
         if (node->next != NULL)
         {
-            FreeNode(node->next); 
+            FreeNode(node->next);
         }
 
-        if (node->name != NULL) 
+        if (node->name != NULL)
             free(node->name);
-        if (node->stringVal != NULL) 
+        if (node->stringVal != NULL)
             free(node->stringVal);
         free(node);
     }
@@ -420,9 +436,20 @@ void FreeNode(TreeNode* node)
 }
 
 
-void SkipWhiteSpace(JsonBuffer* bPtr)
+void SkipWhiteSpace(JsonBuffer* bPtr, bool advanceRead)
 {
-    while (buffer_can_advance(bPtr) && buffer_at_cursor(bPtr) <= 32)
+    while (buffer_can_advance(bPtr))
+    {
+        if (*(bPtr->jsonString+bPtr->cursor + 1) <= 32)
+        {
+            buffer_advance(bPtr);
+        }
+        else
+        {
+            break;
+        }
+    }
+    if (advanceRead)
     {
         bPtr->cursor++;
     }
