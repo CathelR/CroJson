@@ -22,6 +22,7 @@ typedef struct Error
 static Error gl_error;
 
 
+
 /*==================================================================================================================================================*/
 
 /*Macro definition*/
@@ -47,10 +48,11 @@ TO DO :
 ---------------------------------
 -Make better use of error printing 
 -Rebuild tests -> Unit for certain ones (like numbers) as well as Integration tests
--Need to decide when to call this done 
+
     - should handle scientifc numbers?? Shouldnt be that hard actually...
     - Not handlin doubles
     - Need to limit int numbers!!!
+
 -Error checking for memoryu allocation
 -Final chekc for unsafe code
 -make static
@@ -118,13 +120,15 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
         {
             return NULL;
         }
+        SkipWhiteSpace(bPtr);
+        if ((buffer_at_offset(bPtr, 1)) != ':') {
+            return NULL;
+        }
+        else
+        {
+            buffer_advance(bPtr);
+        }
     }
-
-
-    SkipWhiteSpace(bPtr);
-    if (!buffer_at_offset(bPtr,1) != ':')
-        return NULL;
-
     SkipWhiteSpace(bPtr);
     char currChar = buffer_at_offset(bPtr,1);
     switch (currChar)
@@ -454,9 +458,14 @@ void SkipWhiteSpace(JsonBuffer* bPtr)
     }
 }
 
-void PrintError()
+void PrintParseError(char* errorMessage, int charPos)
 {
-    printf("\n!!!->error: %s || position: %d", gl_error.errorMessage, gl_error.charPos);
+    printf("\n!!!->error: %s || position: %d", errorMessage, charPos);
+}
+
+void PrintDefaultError(char* errorMessage, int charPos)
+{
+    printf("\n!!!->error: %s || position: %d", errorMessage, charPos);
 }
 
 

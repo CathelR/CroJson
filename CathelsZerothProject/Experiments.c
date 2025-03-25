@@ -6,19 +6,18 @@
  
 
 #define char_is_numeric(inChar) (inChar >= 48 && inChar <= 57)
-#define buffer_at_offset(buffer, offset) ((buffer->cursor+1+offset)<buffer->length)?   *(buffer->jsonString+(buffer->cursor+offset)) : NULL
+#define buffer_at_offset(buffer, offset) (buffer->cursor+offset<buffer->length)? *(buffer->jsonString+buffer->cursor+offset) : -1
 
 
 
 
 int main()
 {
-	char text[] = "THis is some text";
-	JsonBuffer buff = { text,0,strlen(text) - 1,0 };
-	JsonBuffer* bPtr = &buff;
-	while (buffer_at_offset(bPtr, 0) != NULL)
+	JsonBuffer testBuff2 = { " :",0,2,0 };
+	JsonBuffer* bPtr = &testBuff2;
+	if ((buffer_at_offset(bPtr, 1)) == ':')
 	{
-		printf(buffer_at_offset(bPtr, 0));
+		printf("what the fuck");
 	}
 	return 0;
 }

@@ -12,6 +12,11 @@ enum NodeType
     STRING
 };
 
+enum DefaultError
+{
+    MALLOC,
+    REALLOC
+};
 
 typedef struct TreeNode
 {
@@ -42,7 +47,8 @@ typedef struct Byte
 
 bool ParseFloat(char*, float*);
 bool ParseInt(char*, int*);
-void PrintError();
+void PrintParseError(char*, int);
+void PrintDefaultError();
 TreeNode* CreateNamedNode(JsonBuffer*);
 bool AttatchNodeToRoot(TreeNode*, TreeNode*);
 void SkipWhiteSpace(JsonBuffer*);

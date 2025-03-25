@@ -9,7 +9,8 @@ enum PrintType
 {
 	P_STRING,
 	P_FLOAT,
-	P_INT
+	P_INT,
+	P_BOOL
 };
 void PrintTestsStart(char*);
 void PrintTestsEnd(char*);
@@ -20,19 +21,120 @@ void ParseIntTests();
 void ParseFloatTests();
 void ReadContentTests();
 void ParseNonStringTests();
+void ParseValueTests();
 
 
 
 int main(int argc, char* argv[])
 {
-	ParseFloatTests();
-	ParseIntTests();
-	ReadContentTests();
-	ParseNonStringTests();
-	//ParseValueTests()
+	//ParseFloatTests();
+	//ParseIntTests();
+	//ReadContentTests();
+	//ParseNonStringTests();
+	ParseValueTests();
 
 	return 0;
 }
+
+
+
+void ParseValueTests()
+{
+	PrintTestsStart("ParseValue");
+	TreeNode* node = malloc(sizeof(TreeNode));
+	if (node == NULL)
+	{
+		printf("memory allocation failure");
+		return;
+	}
+
+	char test1[] = ",\"test1\":true,";
+	char test2[] = ",true,";
+	char test3[] = ",\"test3\":999,";
+	char test4[] = ",999,";
+
+	JsonBuffer testBuff1 = { test1,0,strlen(test1),0 };
+	if (ParseValue(&testBuff1, &node, true) != NULL)
+	{
+		if (node->boolVal == (bool)true && (strcmp(node->name, "test1")==0))
+		{
+			PrintSxs(1, true);
+		}
+		else
+		{
+			PrintSxs(1, false);
+			PrintRes(&(node->boolVal), P_BOOL);
+			printf("%s\n", node->name);
+		}
+	}
+	else
+	{
+		PrintSxs(1, false);
+	}
+	//-----------------------------------------------
+	JsonBuffer testBuff2 = { test2,0,strlen(test2),0 };
+	if (ParseValue(&testBuff2, &node, false) != NULL)
+	{
+		if (node->boolVal == (bool)true)
+		{
+			PrintSxs(2, true);
+		}
+		else
+		{
+			PrintSxs(2, false);
+			PrintRes(&(node->boolVal), P_BOOL);
+		}
+	}
+	else
+	{
+		PrintSxs(2, false);
+	}
+	//-----------------------------------------------
+	JsonBuffer testBuff3 = { test3,0,strlen(test3),0 };
+	if (ParseValue(&testBuff3, &node, true) != NULL)
+	{
+		if (node->intVal == (int)999 && (strcmp(node->name, "test3")==0))
+		{
+			PrintSxs(3, true);
+		}
+		else
+		{
+			PrintSxs(3, false);
+			PrintRes(&(node->intVal), P_INT);
+			printf("%s\n", node->name);
+		}
+	}
+	else
+	{
+		PrintSxs(3, false);
+	}
+	//-----------------------------------------------
+	JsonBuffer testBuff4 = { test4,0,strlen(test4),0 };
+	if (ParseValue(&testBuff4, &node, false) != NULL)
+	{
+		if (node->intVal == (int)999 )
+		{
+			PrintSxs(4, true);
+		}
+		else
+		{
+			PrintSxs(4, false);
+			PrintRes(&(node->intVal), P_INT);
+		}
+	}
+	else
+	{
+		PrintSxs(4, false);
+	}
+	
+	
+	PrintTestsEnd("ParseValue");
+
+
+	return;
+}
+
+
 
 
 void ParseNonStringTests()
@@ -528,6 +630,9 @@ void PrintRes(void* input, enum PrintType pType)
 		break;
 	case P_FLOAT:
 		printf("->actual result: %f\n", *(float*)input);
+		break;
+	case P_BOOL:
+		printf("->actual result: %d\n", *(bool*)input);
 		break;
 	default:
 		printf("->Could'nt print actual result\n");
