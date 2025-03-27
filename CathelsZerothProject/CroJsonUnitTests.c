@@ -53,6 +53,9 @@ void ParseValueTests()
 	char test3[] = ",\"test3\":999,";
 	char test4[] = ",999,";
 	char test5[] = ",\"name\":\"word\\nman\"}" ;
+	char test6[] = "\",\"word\\fman\"}";
+
+	char test7[]= "\",\"word\\fman}";
 
 	JsonBuffer testBuff1 = { test1,0,strlen(test1),0 };
 	if (ParseValue(&testBuff1, &node, true) != NULL)
@@ -150,6 +153,39 @@ void ParseValueTests()
 		PrintSxs(5, false);
 	}
 	free(node->name);
+	free(node->stringVal);
+	//-----------------------------------------------
+	JsonBuffer testBuff6 = { test6,1,strlen(test6),0 };
+	if (ParseValue(&testBuff6, &node, false) != NULL)
+	{
+		if (strcmp(node->stringVal, "word\fman") == 0)
+		{
+			PrintSxs(6, true);
+		}
+		else
+		{
+			PrintSxs(6, false);
+			PrintRes(&(node->intVal), P_STRING);
+		}
+	}
+	else
+	{
+		PrintSxs(6, false);
+	}
+	free(node->stringVal);
+
+
+	//SHOULDNT WORK
+
+	JsonBuffer testBuff7 = { test7,1,strlen(test7),0 };
+	if (ParseValue(&testBuff7, &node, false) != NULL)
+	{
+		PrintSxs(7, false);
+	}
+	else
+	{
+		PrintSxs(7, true);
+	}
 	free(node->stringVal);
 	
 	PrintTestsEnd("ParseValue");

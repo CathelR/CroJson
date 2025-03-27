@@ -59,7 +59,9 @@ TO DO :
 -//"":, - for a non string, we immediately return - fine, for a non string...?
 */
 
-
+/*Notes on freeing in case of error:
+-->In case of error we simply return. We call the FreeTree() method which will clear the entire tree...
+*/
 
 //Top level - Interface to recursive methods
 TreeNode* GetJsonTree(char* jsonString)
@@ -208,7 +210,7 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
         
     }
     else isSuccess = false;
-
+    /*Content is a temporary string read from the JSON - once we parse it we don't need the string anymore*/
     free(content);
     return isSuccess;
 }
@@ -412,8 +414,6 @@ bool ReadValueName(JsonBuffer* bPtr, TreeNode* nodeToName)
     {
         isSuccess = true;
     }
-    
-    //FreeNode(nodeToName);//????
 
     return isSuccess;
 }
@@ -432,10 +432,8 @@ void FreeNode(TreeNode* node)
             FreeNode(node->next);
         }
 
-        if (node->name != NULL)
-            free(node->name);
-        if (node->stringVal != NULL)
-            free(node->stringVal);
+        free(node->name);
+        free(node->stringVal);
         free(node);
     }
     return;
