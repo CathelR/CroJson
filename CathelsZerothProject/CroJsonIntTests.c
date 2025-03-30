@@ -34,14 +34,15 @@ void Test1()
 	PrintTestsStart("Test1");
 	char* jsonString = "{\"testVal1\":\"test\",\"testVal2\":\"test2\"}";
 	TreeNode* root = GetJsonTree(jsonString);
+	
 	if (root == NULL)
 	{
 		PrintSxs(1, false);
 	}
+
 	TreeNode* result = SearchTree("testVal1", root);
 	if (result != NULL)
 	{
-		printf("Here");
 		PrintRes(result->stringVal, P_STRING);
 		if (strcmp(result->stringVal, "test")==0)
 		{
@@ -51,6 +52,12 @@ void Test1()
 	PrintTestsEnd("Test1");
 	return;
 }
+
+
+
+
+
+
 void PrintSxs(int testNum, bool success)
 {
 	if (success)

@@ -68,14 +68,13 @@ TreeNode* SearchTree(char* targetName, TreeNode* node)
     {
         if (node->child != NULL)
         {
-            SearchTree(targetName, node->child);
+            return SearchTree(targetName, node->child);
         }
         if (node->next != NULL)
         {
-            SearchTree(targetName, node->next);
+            return SearchTree(targetName, node->next);
         }
     }
-    return NULL;
 }
 
 
@@ -89,6 +88,8 @@ TreeNode* GetJsonTree(char* jsonString)
     TreeNode* root = malloc(sizeof(TreeNode));
     if (root == NULL) return NULL;
    
+    root->name = malloc(5*sizeof(char));
+    strcpy(root->name, "root");
     SkipWhiteSpace(bPtr);
     if (buffer_at_offset(bPtr,1) == '{')
     {        
