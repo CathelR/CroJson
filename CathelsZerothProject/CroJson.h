@@ -42,8 +42,9 @@ typedef struct Byte
 
 bool ParseFloat(char*, float*);
 bool ParseInt(char*, int*);
-void PrintParseError(char*, int);
-void PrintDefaultError();
+void PrintError();
+void SetError(char*, char*, int);
+void AddErrorCallStack(char* );
 TreeNode* CreateNamedNode(JsonBuffer*);
 bool AttatchNodeToRoot(TreeNode*, TreeNode*);
 void SkipWhiteSpace(JsonBuffer*);

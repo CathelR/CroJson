@@ -10,6 +10,8 @@ void PrintTestsEnd(char*);
 void PrintSxs(int, bool);
 void PrintRes(void*, enum PrintType);
 
+void Test1();
+
 enum PrintType
 {
 	P_STRING,
@@ -29,17 +31,24 @@ int main(int argc, char* argv[])
 
 void Test1()
 {
+	PrintTestsStart("Test1");
 	char* jsonString = "{\"testVal1\":\"test\",\"testVal2\":\"test2\"}";
 	TreeNode* root = GetJsonTree(jsonString);
-	if (root != NULL)
+	if (root == NULL)
 	{
-
+		PrintSxs(1, false);
 	}
 	TreeNode* result = SearchTree("testVal1", root);
 	if (result != NULL)
 	{
+		printf("Here");
 		PrintRes(result->stringVal, P_STRING);
+		if (strcmp(result->stringVal, "test")==0)
+		{
+			PrintSxs(1,true);
+		}
 	}
+	PrintTestsEnd("Test1");
 	return;
 }
 void PrintSxs(int testNum, bool success)

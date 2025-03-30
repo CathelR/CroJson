@@ -16,7 +16,8 @@ I'm writing this purely for my own learning so it is by no means fully featured,
 
 typedef struct Error
 {
-    char errorMessage[256];
+    char errorMessage[1024];
+    char methodName[64];
     int charPos;
 }Error;
 static Error gl_error;
@@ -32,6 +33,7 @@ static Error gl_error;
 #define buffer_at_offset(buffer, offset) (buffer->cursor+offset<buffer->length)? *(buffer->jsonString+buffer->cursor+offset) : -1
 #define buffer_advance(buffer) (buffer->cursor++) 
 #define char_is_numeric(inChar) (inChar >= 48 && inChar <= 57)  
+#define name_of(object) #object
 
 #define read_finished (1<<0)
 #define read_success (1<<1)
@@ -90,13 +92,14 @@ TreeNode* GetJsonTree(char* jsonString)
     SkipWhiteSpace(bPtr);
     if (buffer_at_offset(bPtr,1) == '{')
     {        
-        bPtr->cursor += 1; //Increase cursor to the next point - Does the parseobject method expect this?? Need to think about how tho handle
+        SkipWhiteSpace(bPtr);
         isSuccess = ParseObject(bPtr, root);
     }
     if (isSuccess) {
         return root;
     }
     else {
+        PrintError();
         return NULL;//Don't free rootNode obviously because we actually wan it
     }
 }
@@ -112,13 +115,18 @@ bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
         //Each subsequent call uses a pointer to the previous values "next" pointer
         nextNodePtr = ParseValue(bPtr, nextNodePtr, true);
         if (nextNodePtr == NULL) {
+            AddErrorCallStack(name_of(ParseObject));
             return false;
         }
         SkipWhiteSpace(bPtr);
     } while (buffer_at_offset(bPtr,1) == ','); //Because after parsing each value we should have a comma
 
     SkipWhiteSpace(bPtr);
-    if (!buffer_at_cursor(bPtr) == '}') return false;
+    if (!buffer_at_cursor(bPtr) == '}')
+    {
+        SetError("Syntax Error, missing curly close", name_of(ParseObject), bPtr->cursor);
+        return false;
+    }
     else return true;
 }
 
@@ -134,15 +142,18 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
     {
         if (!ReadValueName(bPtr, *socket))
         {
+            AddErrorCallStack(name_of(ParseValue));
             return NULL;
         }
         SkipWhiteSpace(bPtr);
         if ((buffer_at_offset(bPtr, 1)) != ':') {
+            SetError("Syntax Error, missing colon", name_of(ParseValue), bPtr->cursor);
             return NULL;
         }
         else
         {
             buffer_advance(bPtr);
+            //printf("%c\n", buffer_at_cursor(bPtr));
         }
     }
     SkipWhiteSpace(bPtr);
@@ -159,11 +170,19 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
         break;
     case '"':
         if (!ParseString(bPtr, *socket))
+        {
+            AddErrorCallStack(name_of(ParseValue));
             return NULL;
+        }
         break;
     default:
         if (!ParseNonString(bPtr, *socket))
             return NULL;
+    }
+    /*Need to manually advance cursor here, since the read will leave us at the end of the content*/
+    if (buffer_can_advance(bPtr))
+    {
+        buffer_advance(bPtr);
     }
     return  &((*socket)->next);
 }
@@ -186,7 +205,11 @@ bool ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the objec
     } while (buffer_at_offset(bPtr,1) == ','); //Because after parsing each value we should have a comma
 
     SkipWhiteSpace(bPtr);
-    if (!buffer_at_offset(bPtr,1) == ']') return false;
+    if (!buffer_at_offset(bPtr, 1) == ']')
+    {
+        SetError("Syntax Error, missing square close", name_of(ParseList), bPtr->cursor);
+        return false;
+    }
     else return true;
 }
 
@@ -196,7 +219,11 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
 {
     bool isSuccess = false;
     char* content = ReadContent(bPtr, false);
-    if (content == NULL) return false;
+    if (content == NULL)
+    {
+        SetError("Memory Allocation failure", name_of(ParseNonString), bPtr->cursor);
+        return false;
+    }
     if (strcmp(content,"true")==0)
     {
         valueNode->boolVal = true;
@@ -239,7 +266,11 @@ bool ParseString(JsonBuffer* bPtr, TreeNode* valueNode)
         valueNode->nodeType = STRING;
         return true;
     }
-    else return false;
+    else
+    {
+        AddErrorCallStack(name_of(ParseString));
+        return false;
+    }
 }
 
 
@@ -280,7 +311,11 @@ bool ParseFloat(char* input, float* floatValPtr)
             reductionFactor = (strlen(input) - 1) - i;
             hasDecPoint = true;
         }
-        else return false;
+        else
+        {
+            SetError("Syntax Error, Invalid character in content", name_of(ParseFloat), -1);
+            return false;
+        }
 
     }
     for (int f = 0; f < reductionFactor; f++)
@@ -301,18 +336,16 @@ char* ReadContent(JsonBuffer* bPtr, bool isString)
     byte.flags = 0;
     void (*CheckChar)(JsonBuffer*, char*, int*, Byte*);
     
-    if (isString)
+    if (isString && buffer_can_advance(bPtr))
     {
         CheckChar = &CheckCharString;
-        if (buffer_can_advance(bPtr))
+        if ((buffer_at_offset(bPtr,1)) != ('\"'))
         {
-            buffer_advance(bPtr);
-        }
-        if (buffer_at_cursor(bPtr) != '\"')
-        {
+            SetError("Syntax Error, missing open quote", name_of(ReadContent), bPtr->cursor);
             free(string);
             return NULL;
         }
+        buffer_advance(bPtr);
     }
     else
     {
@@ -339,6 +372,7 @@ char* ReadContent(JsonBuffer* bPtr, bool isString)
     }
     else
     {
+        SetError("Failed to read content", name_of(ReadContent), bPtr->cursor);
         free(string);
         return NULL;
     }
@@ -385,6 +419,7 @@ void CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr, Byte* byte)
                 AddCharToContent('\t', content, indexPtr);
                 break;
             default:
+                SetError("Syntax Error, invalid escape sequence", name_of(CheckCharString), bPtr->cursor);
                 byte->flags = byte->flags | read_finished;
                 break;
             }
@@ -432,13 +467,21 @@ bool ReadValueName(JsonBuffer* bPtr, TreeNode* nodeToName)
     SkipWhiteSpace(bPtr);
     if (buffer_can_advance(bPtr))
     {
-        if (!buffer_at_offset(bPtr,1) == '\"')
+        if ((buffer_at_offset(bPtr, 1)) != ('\"'))
+        {
+            //printf("buffatoffset: %c\n", buffer_at_offset(bPtr, 1));
+            SetError("Syntax Error, missing open quote", name_of(ReadValueName), bPtr->cursor);
             return false;
+        }
     }
     nodeToName->name = ReadContent(bPtr, true);
     if (nodeToName->name != NULL)
     {
         isSuccess = true;
+    }
+    else
+    {
+        AddErrorCallStack(name_of(ReadValueName));
     }
 
     return isSuccess;
@@ -482,16 +525,25 @@ void SkipWhiteSpace(JsonBuffer* bPtr)
     }
 }
 
-void PrintParseError(char* errorMessage, int charPos)
+void PrintError()
 {
-    printf("\n!!!->error: %s || position: %d", errorMessage, charPos);
+    printf("\n!!!->Error: %s || Character: %d\n   ->Call Stack: %s\n", gl_error.errorMessage , gl_error.charPos,gl_error.methodName);
 }
 
-void PrintDefaultError(char* errorMessage, int charPos)
+
+void SetError(char* errorMessage,char* methodName ,int charPos)
 {
-    printf("\n!!!->error: %s || position: %d", errorMessage, charPos);
+    strcpy(gl_error.errorMessage, errorMessage);
+    strcpy(gl_error.methodName, methodName);
+    gl_error.charPos = charPos;
+
 }
 
+void AddErrorCallStack(char* methodName)
+{
+    strcat(gl_error.methodName, "<-");
+    strcat(gl_error.methodName, methodName);
+}
 
 
 
