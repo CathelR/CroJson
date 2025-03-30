@@ -140,6 +140,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CroJsonIntTests.c" />
     <ClCompile Include="CroJsonUnitTests.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="Experiments.c" />

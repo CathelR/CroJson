@@ -38,7 +38,6 @@ static Error gl_error;
 /*==================================================================================================================================================*/
 
 
-
 /*Json Methods*/
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -46,22 +45,37 @@ static Error gl_error;
 /*
 TO DO :
 ---------------------------------
--Make better use of error printing 
--Rebuild tests -> Unit for certain ones (like numbers) as well as Integration tests
-
-    - should handle scientifc numbers?? Shouldnt be that hard actually...
-    - Not handlin doubles
-    - Need to limit int numbers!!!
-
--Error checking for memoryu allocation
--Final chekc for unsafe code
--make static
--//"":, - for a non string, we immediately return - fine, for a non string...?
-*/
+- Make better use of error printing to user
+- Add support for scientific numbers
+- Add support for doubles
+- Add limit for int size to prevent parse error
 
 /*Notes on freeing in case of error:
 -->In case of error we simply return. We call the FreeTree() method which will clear the entire tree...
 */
+
+
+/*Returns the node, and the calling method gets to select what it wants*/
+TreeNode* SearchTree(char* targetName, TreeNode* node)
+{       
+    if (strcmp(node->name, targetName) == 0)
+    {
+        return node;
+    }
+    else
+    {
+        if (node->child != NULL)
+        {
+            SearchTree(targetName, node->child);
+        }
+        if (node->next != NULL)
+        {
+            SearchTree(targetName, node->next);
+        }
+    }
+    return NULL;
+}
+
 
 //Top level - Interface to recursive methods
 TreeNode* GetJsonTree(char* jsonString)
@@ -281,6 +295,7 @@ bool ParseFloat(char* input, float* floatValPtr)
 char* ReadContent(JsonBuffer* bPtr, bool isString)
 {
     char* string = malloc(bPtr->length - bPtr->cursor);
+    if (string == NULL) return NULL;
     int index = 0;
     Byte byte;
     byte.flags = 0;
@@ -292,6 +307,11 @@ char* ReadContent(JsonBuffer* bPtr, bool isString)
         if (buffer_can_advance(bPtr))
         {
             buffer_advance(bPtr);
+        }
+        if (buffer_at_cursor(bPtr) != '\"')
+        {
+            free(string);
+            return NULL;
         }
     }
     else
@@ -308,8 +328,14 @@ char* ReadContent(JsonBuffer* bPtr, bool isString)
     if (byte.flags & read_success) 
     {
         *(string + index) = '\0';
+        char* holder = string;
         string = realloc(string,(index+1) * sizeof(char));
-        return string;
+        if (string == NULL)
+        {
+            free(holder);
+            return NULL;
+        }
+        else return string;
     }
     else
     {

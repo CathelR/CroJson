@@ -1,13 +1,37 @@
-﻿  JsonReader.c
-C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\JsonReader.c(5,10): fatal error C1083: Cannot open include file: 'Structs.h': No such file or directory
-  QuikTest.c
-C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\QuikTest.c(15,2): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  FileFuncs.c
-C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\FileFuncs.c(12,9): warning C4013: 'gets' undefined; assuming extern returning int
-C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\FileFuncs.c(13,29): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\FileFuncs.c(69,22): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\FileFuncs.c(94,29): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\FileFuncs.c(96,9): error C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+﻿  CroJsonUnitTests.c
+  Main.c
+  Experiments.c
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(60,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(80,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(98,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(119,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(137,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(158,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(180,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(219,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(236,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(253,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(271,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(291,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(302,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+\Main.c(1,1): error C1083: Cannot open source file: 'Main.c': No such file or directory
+  (compiling source file '/Main.c')
+  
+  FileOps.c
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\FileOps.c(12,5): warning C4013: 'gets' undefined; assuming extern returning int
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\FileOps.c(13,23): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\FileOps.c(98,23): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\FileOps.c(100,9): error C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  JsonReaderTests.c
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\JsonReaderTests.c(41,4): warning C4013: 'PrintErr' undefined; assuming extern returning int
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\JsonReaderTests.c(45,8): warning C4013: 'JsonValid' undefined; assuming extern returning int
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\JsonReaderTests.c(36,3): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\JsonReaderTests.c(37,3): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  CroJson.c
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(69,41): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(264,51): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(250,32): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   Utils.c
-C:\Users\CHTHEL\source\repos\CathelsZerothProject\CathelsZerothProject\Utils.c(16,31): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\Utils.c(16,31): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\Utils.c(31,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   Generating Code...

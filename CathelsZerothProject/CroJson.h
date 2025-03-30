@@ -12,11 +12,6 @@ enum NodeType
     STRING
 };
 
-enum DefaultError
-{
-    MALLOC,
-    REALLOC
-};
 
 typedef struct TreeNode
 {
@@ -64,6 +59,7 @@ void CheckCharString(JsonBuffer*, char*, int*, Byte*);
 void CheckCharNonString(JsonBuffer*, char*, int*, Byte*);
 bool ReadValueName(JsonBuffer*, TreeNode*);
 void AddCharToContent(char, char*, int*);
+TreeNode* SearchTree(char*, TreeNode*);
 
 
 

@@ -27,10 +27,10 @@ void ParseValueTests();
 
 int main(int argc, char* argv[])
 {
-	//ParseFloatTests();
-	//ParseIntTests();
-	//ReadContentTests();
-	//ParseNonStringTests();
+	ParseFloatTests();
+	ParseIntTests();
+	ReadContentTests();
+	ParseNonStringTests();
 	ParseValueTests();
 
 	return 0;
