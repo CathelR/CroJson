@@ -60,6 +60,7 @@ TO DO :
 /*Returns the node, and the calling method gets to select what it wants*/
 TreeNode* SearchTree(char* targetName, TreeNode* node)
 {       
+    printf("node name: %s\n", node->name);
     if (strcmp(node->name, targetName) == 0)
     {
         return node;
@@ -75,6 +76,7 @@ TreeNode* SearchTree(char* targetName, TreeNode* node)
             return SearchTree(targetName, node->next);
         }
     }
+    return NULL;
 }
 
 
@@ -109,7 +111,7 @@ TreeNode* GetJsonTree(char* jsonString)
 bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
 {
     relRoot->nodeType = OBJECT;
-    //In the first instance I pass in a pointer to the roots objects "child" pointer
+    //In the first instance I pass in a pointer to the root objects "child" pointer
     TreeNode** nextNodePtr = &(relRoot->child); 
     do
     {
@@ -120,10 +122,10 @@ bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
             return false;
         }
         SkipWhiteSpace(bPtr);
-    } while (buffer_at_offset(bPtr,1) == ','); //Because after parsing each value we should have a comma
+    } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
 
     SkipWhiteSpace(bPtr);
-    if (!buffer_at_cursor(bPtr) == '}')
+    if ((buffer_at_cursor(bPtr)) != '}')
     {
         SetError("Syntax Error, missing curly close", name_of(ParseObject), bPtr->cursor);
         return false;
@@ -137,7 +139,11 @@ Returns a pointer to the created nodes "next" pointer - basically the socket at 
 TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
 {
     *socket = malloc(sizeof(TreeNode));
-    if (*socket == NULL) return NULL;
+    if (*socket == NULL)
+    {
+        SetError("Memory Allocation failure", name_of(ParseValue), bPtr->cursor);
+        return NULL;
+    }
 
     if (shouldReadName)
     {
@@ -147,14 +153,15 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
             return NULL;
         }
         SkipWhiteSpace(bPtr);
-        if ((buffer_at_offset(bPtr, 1)) != ':') {
+
+        if ((buffer_at_cursor(bPtr)) != ':') {
             SetError("Syntax Error, missing colon", name_of(ParseValue), bPtr->cursor);
             return NULL;
         }
         else
         {
-            buffer_advance(bPtr);
-            //printf("%c\n", buffer_at_cursor(bPtr));
+            //buffer_advance(bPtr);
+            //printf("buff at cursor: %c\n", buffer_at_cursor(bPtr));
         }
     }
     SkipWhiteSpace(bPtr);
@@ -163,11 +170,17 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
     {
     case '{':
         if (!ParseObject(bPtr, *socket))
+        {
+            AddErrorCallStack(name_of(ParseValue));
             return NULL;
+        }
         break;
     case '[':
         if (!ParseList(bPtr, *socket))
+        {
+            AddErrorCallStack(name_of(ParseValue));
             return NULL;
+        }
         break;
     case '"':
         if (!ParseString(bPtr, *socket))
@@ -178,13 +191,14 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
         break;
     default:
         if (!ParseNonString(bPtr, *socket))
+        {
+            AddErrorCallStack(name_of(ParseValue));
             return NULL;
+        }
     }
-    /*Need to manually advance cursor here, since the read will leave us at the end of the content*/
-    if (buffer_can_advance(bPtr))
-    {
-        buffer_advance(bPtr);
-    }
+    
+    SkipWhiteSpace(bPtr);
+    
     return  &((*socket)->next);
 }
 
@@ -203,10 +217,10 @@ bool ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the objec
             return false;
         }
         SkipWhiteSpace(bPtr);
-    } while (buffer_at_offset(bPtr,1) == ','); //Because after parsing each value we should have a comma
+    } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
 
     SkipWhiteSpace(bPtr);
-    if (!buffer_at_offset(bPtr, 1) == ']')
+    if (!buffer_at_cursor(bPtr) == ']')
     {
         SetError("Syntax Error, missing square close", name_of(ParseList), bPtr->cursor);
         return false;
@@ -222,9 +236,10 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
     char* content = ReadContent(bPtr, false);
     if (content == NULL)
     {
-        SetError("Memory Allocation failure", name_of(ParseNonString), bPtr->cursor);
+        AddErrorCallStack(name_of(ParseNonString));
         return false;
     }
+    printf("%s\n", content);
     if (strcmp(content,"true")==0)
     {
         valueNode->boolVal = true;
@@ -251,7 +266,11 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
         }
         
     }
-    else isSuccess = false;
+    else
+    {
+        AddErrorCallStack(name_of(ParseNonString));
+        isSuccess = false;
+    }
     /*Content is a temporary string read from the JSON - once we parse it we don't need the string anymore*/
     free(content);
     return isSuccess;
@@ -331,7 +350,11 @@ bool ParseFloat(char* input, float* floatValPtr)
 char* ReadContent(JsonBuffer* bPtr, bool isString)
 {
     char* string = malloc(bPtr->length - bPtr->cursor);
-    if (string == NULL) return NULL;
+    if (string == NULL)
+    {
+        SetError("Memory Allocation failure", name_of(ReadContent), bPtr->cursor);
+        return NULL;
+    }
     int index = 0;
     Byte byte;
     byte.flags = 0;
@@ -361,6 +384,7 @@ char* ReadContent(JsonBuffer* bPtr, bool isString)
 
     if (byte.flags & read_success) 
     {
+        //printf("%s\n", string);
         *(string + index) = '\0';
         char* holder = string;
         string = realloc(string,(index+1) * sizeof(char));
@@ -388,6 +412,12 @@ void CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr, Byte* byte)
     switch (currChar)
     {
     case'\"':
+        if (buffer_can_advance(bPtr))
+        {
+            //printf("bef: %c\n", buffer_at_cursor(bPtr));
+            buffer_advance(bPtr);
+            //printf("aft: %c\n", buffer_at_cursor(bPtr));
+        }
         byte->flags = byte->flags | read_finished;
         byte->flags = byte->flags | read_success;
         break;
