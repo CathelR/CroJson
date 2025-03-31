@@ -75,7 +75,6 @@ TreeNode* SearchTree(char* targetName, TreeNode* node)
             return SearchTree(targetName, node->next);
         }
     }
-    return NULL;
 }
 
 
