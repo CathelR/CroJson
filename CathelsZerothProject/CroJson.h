@@ -47,7 +47,7 @@ void SetError(char*, char*, int);
 void AddErrorCallStack(char* );
 TreeNode* CreateNamedNode(JsonBuffer*);
 bool AttatchNodeToRoot(TreeNode*, TreeNode*);
-void SkipWhiteSpace(JsonBuffer*);
+void SkipWhiteSpace(JsonBuffer*, bool);
 void FreeNode(TreeNode*);
 TreeNode* GetJsonTree(char*);
 bool ParseObject(JsonBuffer*, TreeNode*);

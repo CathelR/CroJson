@@ -33,6 +33,7 @@ static Error gl_error;
 #define buffer_at_offset(buffer, offset) (buffer->cursor+offset<buffer->length)? *(buffer->jsonString+buffer->cursor+offset) : -1
 #define buffer_advance(buffer) (buffer->cursor++) 
 #define char_is_numeric(inChar) (inChar >= 48 && inChar <= 57)  
+#define char_is_whitespace(inChar)  (inChar <= 32 && inChar>=0)
 #define name_of(object) #object
 
 #define read_finished (1<<0)
@@ -92,10 +93,9 @@ TreeNode* GetJsonTree(char* jsonString)
    
     root->name = malloc(5*sizeof(char));
     strcpy(root->name, "root");
-    SkipWhiteSpace(bPtr);
-    if (buffer_at_offset(bPtr,1) == '{')
+    SkipWhiteSpace(bPtr,false);
+    if ((buffer_at_cursor(bPtr)) == '{')
     {        
-        SkipWhiteSpace(bPtr);
         isSuccess = ParseObject(bPtr, root);
     }
     if (isSuccess) {
@@ -111,20 +111,22 @@ TreeNode* GetJsonTree(char* jsonString)
 bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
 {
     relRoot->nodeType = OBJECT;
+
     //In the first instance I pass in a pointer to the root objects "child" pointer
     TreeNode** nextNodePtr = &(relRoot->child); 
     do
     {
+        //TODO: Read name should come here - take out of parse value - maybe just attatch the node here and pass it in???
         //Each subsequent call uses a pointer to the previous values "next" pointer
         nextNodePtr = ParseValue(bPtr, nextNodePtr, true);
         if (nextNodePtr == NULL) {
             AddErrorCallStack(name_of(ParseObject));
             return false;
         }
-        SkipWhiteSpace(bPtr);
-    } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
+        SkipWhiteSpace(bPtr,true);
+    } while ((buffer_at_cursor(bPtr)) == ','); //Because after parsing each value we should have a comma
 
-    SkipWhiteSpace(bPtr);
+    SkipWhiteSpace(bPtr,true);
     if ((buffer_at_cursor(bPtr)) != '}')
     {
         SetError("Syntax Error, missing curly close", name_of(ParseObject), bPtr->cursor);
@@ -152,9 +154,14 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
             AddErrorCallStack(name_of(ParseValue));
             return NULL;
         }
-        SkipWhiteSpace(bPtr);
+        //printf("buffer_at_cursor: %c\n", buffer_at_cursor(bPtr));
+        if (char_is_whitespace(buffer_at_cursor(bPtr)))
+        {
+            SkipWhiteSpace(bPtr,true);
+        }
 
         if ((buffer_at_cursor(bPtr)) != ':') {
+            //printf("buffer_at_cursor: %c\n", buffer_at_cursor(bPtr));
             SetError("Syntax Error, missing colon", name_of(ParseValue), bPtr->cursor);
             return NULL;
         }
@@ -164,11 +171,14 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
             //printf("buff at cursor: %c\n", buffer_at_cursor(bPtr));
         }
     }
-    SkipWhiteSpace(bPtr);
+    SkipWhiteSpace(bPtr, false);
+    //printf("at_cursor: %c\n", buffer_at_cursor(bPtr));
+
     char currChar = buffer_at_offset(bPtr,1);
     switch (currChar)
     {
     case '{':
+        buffer_advance(bPtr);
         if (!ParseObject(bPtr, *socket))
         {
             AddErrorCallStack(name_of(ParseValue));
@@ -196,8 +206,7 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
             return NULL;
         }
     }
-    
-    SkipWhiteSpace(bPtr);
+   
     
     return  &((*socket)->next);
 }
@@ -216,10 +225,10 @@ bool ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the objec
         if (nextNodePtr == NULL) {
             return false;
         }
-        SkipWhiteSpace(bPtr);
+        SkipWhiteSpace(bPtr,true);
     } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
 
-    SkipWhiteSpace(bPtr);
+    SkipWhiteSpace(bPtr,true);
     if (!buffer_at_cursor(bPtr) == ']')
     {
         SetError("Syntax Error, missing square close", name_of(ParseList), bPtr->cursor);
@@ -239,7 +248,7 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
         AddErrorCallStack(name_of(ParseNonString));
         return false;
     }
-    printf("%s\n", content);
+    //printf("%s\n", content);
     if (strcmp(content,"true")==0)
     {
         valueNode->boolVal = true;
@@ -264,7 +273,6 @@ bool ParseNonString(JsonBuffer* bPtr, TreeNode* valueNode)
             valueNode->nodeType = INT;
             isSuccess = ParseInt(content, &(valueNode->intVal));
         }
-        
     }
     else
     {
@@ -300,7 +308,11 @@ bool ParseInt(char* input, int* intValPtr)
     float floatVal;
 
     if (!ParseFloat(input, &floatVal))
+    {
+        AddErrorCallStack(name_of(ParseInt));
         return false;
+    }
+        
     *intValPtr = (int)floatVal;
 
     return true;;
@@ -369,7 +381,10 @@ char* ReadContent(JsonBuffer* bPtr, bool isString)
             free(string);
             return NULL;
         }
-        buffer_advance(bPtr);
+        else
+        {
+            buffer_advance(bPtr);
+        }
     }
     else
     {
@@ -384,12 +399,13 @@ char* ReadContent(JsonBuffer* bPtr, bool isString)
 
     if (byte.flags & read_success) 
     {
-        //printf("%s\n", string);
         *(string + index) = '\0';
         char* holder = string;
         string = realloc(string,(index+1) * sizeof(char));
+        printf("%s\n", string);
         if (string == NULL)
         {
+            SetError("Memory Allocation failure", name_of(ReadContent), bPtr->cursor);
             free(holder);
             return NULL;
         }
@@ -495,7 +511,7 @@ void AddCharToContent(char currChar, char* string, int* indexPtr)
 bool ReadValueName(JsonBuffer* bPtr, TreeNode* nodeToName)
 {
     bool isSuccess = false;
-    SkipWhiteSpace(bPtr);
+    SkipWhiteSpace(bPtr,false);
     if (buffer_can_advance(bPtr))
     {
         if ((buffer_at_offset(bPtr, 1)) != ('\"'))
@@ -540,12 +556,13 @@ void FreeNode(TreeNode* node)
 }
 
 
-void SkipWhiteSpace(JsonBuffer* bPtr)
+void SkipWhiteSpace(JsonBuffer* bPtr, bool doAdvanceRead)
 {
     while (buffer_can_advance(bPtr))
     {
-        char currChar = buffer_at_offset(bPtr, 1);
-        if (currChar <= 32 && currChar>=0)
+        //char currChar = buffer_at_cursor(bPtr);
+        char nextChar = buffer_at_offset(bPtr,1);
+        if (char_is_whitespace(nextChar))
         {
             buffer_advance(bPtr);
         }
@@ -554,6 +571,14 @@ void SkipWhiteSpace(JsonBuffer* bPtr)
             break;
         }
     }
+    if (doAdvanceRead)
+    {
+        if (char_is_whitespace((buffer_at_cursor(bPtr))) && (buffer_can_advance(bPtr)))
+        {
+            buffer_advance(bPtr);
+        }
+    }
+    
 }
 
 void PrintError()
