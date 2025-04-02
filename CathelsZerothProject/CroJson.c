@@ -61,7 +61,7 @@ TO DO :
 /*Returns the node, and the calling method gets to select what it wants*/
 TreeNode* SearchTree(char* targetName, TreeNode* node)
 {       
-    printf("node name: %s\n", node->name);
+    //printf("node name: %s\n", node->name);
     if (strcmp(node->name, targetName) == 0)
     {
         return node;
@@ -402,7 +402,7 @@ char* ReadContent(JsonBuffer* bPtr, bool isString)
         *(string + index) = '\0';
         char* holder = string;
         string = realloc(string,(index+1) * sizeof(char));
-        printf("%s\n", string);
+        //printf("%s\n", string);
         if (string == NULL)
         {
             SetError("Memory Allocation failure", name_of(ReadContent), bPtr->cursor);
@@ -524,6 +524,7 @@ bool ReadValueName(JsonBuffer* bPtr, TreeNode* nodeToName)
     nodeToName->name = ReadContent(bPtr, true);
     if (nodeToName->name != NULL)
     {
+        //printf("%s\n", nodeToName->name);
         isSuccess = true;
     }
     else

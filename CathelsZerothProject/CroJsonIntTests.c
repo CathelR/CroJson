@@ -12,6 +12,7 @@ void PrintRes(void*, enum PrintType);
 
 void Test1();
 void Test2();
+void Test3();
 
 
 enum PrintType
@@ -27,9 +28,40 @@ int main(int argc, char* argv[])
 {
 	Test1();
 	Test2();
+	Test3();
 
 	return 0;
 }
+
+
+void Test3()
+{
+	PrintTestsStart("Test3");
+	char* jsonString = "{\"testVal1\":  \"test\",\"testVal2\":{  \"subValName\" : 19.4 ,\"subVal2Name\" : true} }";
+	TreeNode* root = GetJsonTree(jsonString);
+
+	if (root == NULL)
+	{
+		PrintSxs(3, false);
+	}
+
+	TreeNode* result = SearchTree("subVal2Name", root);
+	if (result != NULL)
+	{
+		//PrintRes(&result->boolVal, P_BOOL);
+		if (result->boolVal == true)
+		{
+			PrintSxs(3, true);
+		}
+		else
+		{
+			PrintSxs(3, false);
+		}
+	}
+	PrintTestsEnd("Test3");
+	return;
+}
+
 
 void Test2()
 {
@@ -57,8 +89,6 @@ void Test2()
 	}
 	PrintTestsEnd("Test2");
 	return;
-
-
 }
 
 void Test1()
