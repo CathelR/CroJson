@@ -102,11 +102,11 @@ void Test1()
 		PrintSxs(1, false);
 	}
 
-	TreeNode* result = SearchTree("testVal1", root);
+	TreeNode* result = SearchTree("testVal2", root);
 	if (result != NULL)
 	{
 		PrintRes(result->stringVal, P_STRING);
-		if (strcmp(result->stringVal, "test")==0)
+		if (strcmp(result->stringVal, "test2")==0)
 		{
 			PrintSxs(1,true);
 		}

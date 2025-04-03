@@ -57,11 +57,23 @@ TO DO :
 -->In case of error we simply return. We call the FreeTree() method which will clear the entire tree...
 */
 
+/*
+I'm successfully creating and naming the node - but for some reason I can't then search for it.
+This suggests that it's not getting attached where it should  - but thats also not true - because I know that when I search I'm searching an extra node- that doesn't seem tohave a name
+How can that be??
+So the node is created and named properly - something.. is getting attached to the socket.. 
+I know that it's not an error because of debugging work - we're successsfully returning something
+The problem maybe is not what we return from the "missing" node, but from the previous node? If the node exists but I cant find it, the problem is then that the previous node isn't pointing to the 
+right place?
+Socket is not the socket that I think it is
+
+*/
 
 /*Returns the node, and the calling method gets to select what it wants*/
 TreeNode* SearchTree(char* targetName, TreeNode* node)
 {       
     //printf("node name: %s\n", node->name);
+
     if (strcmp(node->name, targetName) == 0)
     {
         return node;
@@ -119,6 +131,7 @@ bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
         //TODO: Read name should come here - take out of parse value - maybe just attatch the node here and pass it in???
         //Each subsequent call uses a pointer to the previous values "next" pointer
         nextNodePtr = ParseValue(bPtr, nextNodePtr, true);
+
         if (nextNodePtr == NULL) {
             AddErrorCallStack(name_of(ParseObject));
             return false;
@@ -165,11 +178,6 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
             SetError("Syntax Error, missing colon", name_of(ParseValue), bPtr->cursor);
             return NULL;
         }
-        else
-        {
-            //buffer_advance(bPtr);
-            //printf("buff at cursor: %c\n", buffer_at_cursor(bPtr));
-        }
     }
     SkipWhiteSpace(bPtr, false);
     //printf("at_cursor: %c\n", buffer_at_cursor(bPtr));
@@ -206,8 +214,7 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
             return NULL;
         }
     }
-   
-    
+    //printf("socketName: %s\n", (*socket)->name);
     return  &((*socket)->next);
 }
 
