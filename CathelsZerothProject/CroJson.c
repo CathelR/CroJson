@@ -53,40 +53,39 @@ TO DO :
 - Add support for doubles
 - Add limit for int size to prevent parse error
 
+-Put node naming into ParseObject, and create node creation submethod
+
 /*Notes on freeing in case of error:
 -->In case of error we simply return. We call the FreeTree() method which will clear the entire tree...
 */
 
 /*
-I'm successfully creating and naming the node - but for some reason I can't then search for it.
-This suggests that it's not getting attached where it should  - but thats also not true - because I know that when I search I'm searching an extra node- that doesn't seem tohave a name
-How can that be??
-So the node is created and named properly - something.. is getting attached to the socket.. 
-I know that it's not an error because of debugging work - we're successsfully returning something
-The problem maybe is not what we return from the "missing" node, but from the previous node? If the node exists but I cant find it, the problem is then that the previous node isn't pointing to the 
-right place?
-Socket is not the socket that I think it is
-
+SO, basically I need to decide on the convention. How to handle lists, objets etc. I suppose it doesnt matter - I'm just returning the node. 
+But would be good to have a method or geting to a paticular points in a list. Or to say, I have an object, how do I get a specific property.
+Well I've got that already.
+BUt for lists, have a separate method
 */
 
 /*Returns the node, and the calling method gets to select what it wants*/
 TreeNode* SearchTree(char* targetName, TreeNode* node)
 {       
     //printf("node name: %s\n", node->name);
-
+    //printf("node child: %p, node next: %p\n", node->child, node->next);
     if (strcmp(node->name, targetName) == 0)
     {
         return node;
     }
     else
     {
-        if (node->child != NULL)
-        {
-            return SearchTree(targetName, node->child);
-        }
         if (node->next != NULL)
         {
+            //printf("Followed next of: %s\n", node->name);
             return SearchTree(targetName, node->next);
+        }
+        if (node->child != NULL)
+        {
+            //printf("Followed child of: %s\n", node->name);
+            return SearchTree(targetName, node->child);
         }
     }
     return NULL;
@@ -102,7 +101,8 @@ TreeNode* GetJsonTree(char* jsonString)
     JsonBuffer* bPtr = &buffer;
     TreeNode* root = malloc(sizeof(TreeNode));
     if (root == NULL) return NULL;
-   
+    root->child = NULL;
+    root->next = NULL;
     root->name = malloc(5*sizeof(char));
     strcpy(root->name, "root");
     SkipWhiteSpace(bPtr,false);
@@ -115,7 +115,7 @@ TreeNode* GetJsonTree(char* jsonString)
     }
     else {
         PrintError();
-        return NULL;//Don't free rootNode obviously because we actually wan it
+        return NULL;
     }
 }
 
@@ -123,16 +123,16 @@ TreeNode* GetJsonTree(char* jsonString)
 bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
 {
     relRoot->nodeType = OBJECT;
-
-    //In the first instance I pass in a pointer to the root objects "child" pointer
-    TreeNode** nextNodePtr = &(relRoot->child); 
+    
+    TreeNode* createdNode;
+    TreeNode** nextNodePtr = &(relRoot->child);
     do
     {
         //TODO: Read name should come here - take out of parse value - maybe just attatch the node here and pass it in???
-        //Each subsequent call uses a pointer to the previous values "next" pointer
-        nextNodePtr = ParseValue(bPtr, nextNodePtr, true);
-
-        if (nextNodePtr == NULL) {
+        createdNode = ParseValue(bPtr, nextNodePtr, true);
+        //printf("CreatedNodeName: %s\n", createdNode->name);
+        nextNodePtr = &(createdNode->next);
+        if (createdNode == NULL) {
             AddErrorCallStack(name_of(ParseObject));
             return false;
         }
@@ -151,14 +151,17 @@ bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
 
 /*->A value in this context is anything that has a name (as well as list items)
 Returns a pointer to the created nodes "next" pointer - basically the socket at which we attatch the next value*/
-TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
+TreeNode* ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
 {
     *socket = malloc(sizeof(TreeNode));
+
     if (*socket == NULL)
     {
         SetError("Memory Allocation failure", name_of(ParseValue), bPtr->cursor);
         return NULL;
     }
+    (*socket)->child = NULL;
+    (*socket)->next = NULL;
 
     if (shouldReadName)
     {
@@ -215,7 +218,7 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
         }
     }
     //printf("socketName: %s\n", (*socket)->name);
-    return  &((*socket)->next);
+    return  (*socket);
 }
 
 
@@ -223,15 +226,16 @@ TreeNode** ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
 bool ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the object created when we called parseValue
 {
     relRoot->nodeType = LIST;
-    //In the first instance I pass in a pointer to the roots objects "child" pointer
+    
+    TreeNode* createdNode;
     TreeNode** nextNodePtr = &(relRoot->child);
     do
     {
-        //Each subsequent call uses a pointer to the previous values "next" pointer
-        nextNodePtr = ParseValue(bPtr, nextNodePtr, false);
-        if (nextNodePtr == NULL) {
+        createdNode = ParseValue(bPtr, nextNodePtr, false);
+        if (createdNode == NULL) {
             return false;
         }
+        nextNodePtr = &(createdNode->next);
         SkipWhiteSpace(bPtr,true);
     } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
 

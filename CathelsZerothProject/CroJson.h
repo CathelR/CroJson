@@ -51,7 +51,7 @@ void SkipWhiteSpace(JsonBuffer*, bool);
 void FreeNode(TreeNode*);
 TreeNode* GetJsonTree(char*);
 bool ParseObject(JsonBuffer*, TreeNode*);
-TreeNode** ParseValue(JsonBuffer*, TreeNode**, bool);
+TreeNode* ParseValue(JsonBuffer*, TreeNode**, bool);
 bool ParseList(JsonBuffer*, TreeNode*);
 bool ParseNonString(JsonBuffer*, TreeNode*);
 bool ParseString(JsonBuffer*, TreeNode*);

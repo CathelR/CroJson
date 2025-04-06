@@ -33,6 +33,35 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+void Test4()
+{
+	PrintTestsStart("Test4");
+	char* jsonString = "{\"testVal1\":  \"test\",\"testVal2\":{  \"subValName\" : 19.4 ,\"subVal2Name\" : true} }";
+	TreeNode* root = GetJsonTree(jsonString);
+
+	if (root == NULL)
+	{
+		PrintSxs(4, false);
+	}
+
+	TreeNode* result = SearchTree("subVal2Name", root);
+	if (result != NULL)
+	{
+		//PrintRes(&result->boolVal, P_BOOL);
+		if (result->boolVal == true)
+		{
+			PrintSxs(4, true);
+		}
+		else
+		{
+			PrintSxs(4, false);
+		}
+	}
+	PrintTestsEnd("Test4");
+	return;
+}
+
+
 
 void Test3()
 {
@@ -78,7 +107,7 @@ void Test2()
 	if (result != NULL)
 	{
 		PrintRes(&result->intVal, P_INT);
-		if (result->intVal == 0)
+		if (result->intVal == 19)
 		{
 			PrintSxs(2, true);
 		}
