@@ -13,6 +13,9 @@ void PrintRes(void*, enum PrintType);
 void Test1();
 void Test2();
 void Test3();
+void Test4();
+void Test5();
+void Test6();
 
 
 enum PrintType
@@ -29,10 +32,75 @@ int main(int argc, char* argv[])
 	Test1();
 	Test2();
 	Test3();
+	Test4();
+	Test5();
+	Test6();
 
 	return 0;
 }
 
+void Test6()
+{
+	PrintTestsStart("Test6");
+	char* jsonString = "{\"testVal1\":  \"test\",\"testVal2\":{  \"subValName\" : 19.4 ,   \"subVal2Name\" :\n [\"word1\",\"word2\",\"word3\"]  }} }";
+	TreeNode* root = GetJsonTree(jsonString);
+
+	if (root == NULL)
+	{
+		PrintSxs(6, false);
+	}
+
+	TreeNode* result = SearchTree("subVal2Name", root);
+	 result = GetListItem(1, result);
+	if (result != NULL)
+	{
+		PrintRes(result->stringVal, P_STRING);
+		if (strcmp(result->stringVal, "word2") == 0)
+		{
+			PrintSxs(6, true);
+		}
+		else
+		{
+			PrintSxs(6, false);
+		}
+	}
+	PrintTestsEnd("Test6");
+	return;
+
+}
+
+
+
+
+
+void Test5()
+{
+	PrintTestsStart("Test5");
+	char* jsonString = "{\"testVal1\":  \"test\",\"testVal2\":{  \"subValName\" : 19.4 ,   \"subVal2Name\" :\n {  \"lowestObject\":\"testResult\"}   }} }";
+	TreeNode* root = GetJsonTree(jsonString);
+
+	if (root == NULL)
+	{
+		PrintSxs(5, false);
+	}
+
+	TreeNode* result = SearchTree("lowestObject", root);
+	if (result != NULL)
+	{
+		PrintRes(result->stringVal, P_STRING);
+		if (strcmp(result->stringVal, "testResult") == 0)
+		{
+			PrintSxs(5, true);
+		}
+		else
+		{
+			PrintSxs(5, false);
+		}
+	}
+	PrintTestsEnd("Test5");
+	return;
+
+}
 void Test4()
 {
 	PrintTestsStart("Test4");

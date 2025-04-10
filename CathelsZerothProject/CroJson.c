@@ -91,6 +91,38 @@ TreeNode* SearchTree(char* targetName, TreeNode* node)
     return NULL;
 }
 
+TreeNode* GetListItem(int listIndex, TreeNode* listRoot)
+{
+    int currIndex = 0;
+    TreeNode* window;
+    if (listRoot->nodeType != LIST)
+    {
+        return NULL;
+    }
+
+    if (listRoot->child != NULL)
+    {
+        window = listRoot->child;
+    }
+    else
+    {
+        return NULL;
+    }
+    for (int i = 1; i <= listIndex; i++)
+    {
+        if (window->next == NULL)
+        {
+            return NULL;
+        }
+        else
+        {
+            window = window->next;
+        }
+
+    }
+    return window;
+}
+
 
 //Top level - Interface to recursive methods
 TreeNode* GetJsonTree(char* jsonString)
