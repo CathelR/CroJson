@@ -69,7 +69,8 @@ BUt for lists, have a separate method
 /*Returns the node, and the calling method gets to select what it wants*/
 TreeNode* SearchTree(char* targetName, TreeNode* node)
 {       
-    //printf("node name: %s\n", node->name);
+    //printf("node name: \n");
+    //printf("%s\n", node->name);
     //printf("node child: %p, node next: %p\n", node->child, node->next);
     if (strcmp(node->name, targetName) == 0)
     {
@@ -93,6 +94,7 @@ TreeNode* SearchTree(char* targetName, TreeNode* node)
 
 TreeNode* GetListItem(int listIndex, TreeNode* listRoot)
 {
+    
     int currIndex = 0;
     TreeNode* window;
     if (listRoot->nodeType != LIST)
@@ -106,10 +108,12 @@ TreeNode* GetListItem(int listIndex, TreeNode* listRoot)
     }
     else
     {
+
         return NULL;
     }
     for (int i = 1; i <= listIndex; i++)
     {
+
         if (window->next == NULL)
         {
             return NULL;
@@ -163,21 +167,29 @@ bool ParseObject(JsonBuffer* bPtr, TreeNode* relRoot)
         //TODO: Read name should come here - take out of parse value - maybe just attatch the node here and pass it in???
         createdNode = ParseValue(bPtr, nextNodePtr, true);
         //printf("CreatedNodeName: %s\n", createdNode->name);
-        nextNodePtr = &(createdNode->next);
         if (createdNode == NULL) {
             AddErrorCallStack(name_of(ParseObject));
             return false;
         }
+        nextNodePtr = &(createdNode->next);
         SkipWhiteSpace(bPtr,true);
     } while ((buffer_at_cursor(bPtr)) == ','); //Because after parsing each value we should have a comma
-
+    //PrintToCursor(bPtr);
     SkipWhiteSpace(bPtr,true);
     if ((buffer_at_cursor(bPtr)) != '}')
     {
         SetError("Syntax Error, missing curly close", name_of(ParseObject), bPtr->cursor);
         return false;
     }
-    else return true;
+    else
+    {
+        if (buffer_can_advance(bPtr))
+        {
+            buffer_advance(bPtr);
+        }
+        return true;
+    }
+        
 }
 
 
@@ -215,7 +227,6 @@ TreeNode* ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
         }
     }
     SkipWhiteSpace(bPtr, false);
-    //printf("at_cursor: %c\n", buffer_at_cursor(bPtr));
 
     char currChar = buffer_at_offset(bPtr,1);
     switch (currChar)
@@ -227,6 +238,7 @@ TreeNode* ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
             AddErrorCallStack(name_of(ParseValue));
             return NULL;
         }
+        //PrintToCursor(bPtr);
         break;
     case '[':
         if (!ParseList(bPtr, *socket))
@@ -250,6 +262,7 @@ TreeNode* ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
         }
     }
     //printf("socketName: %s\n", (*socket)->name);
+    //printf("cursor: %d, atCursor: %c\n", bPtr->cursor, buffer_at_cursor(bPtr));
     return  (*socket);
 }
 
@@ -258,18 +271,24 @@ TreeNode* ParseValue(JsonBuffer* bPtr, TreeNode** socket, bool shouldReadName)
 bool ParseList(JsonBuffer* bPtr, TreeNode* relRoot) //Where relRoot is the object created when we called parseValue
 {
     relRoot->nodeType = LIST;
-    
+    if (buffer_can_advance(bPtr))
+    {
+        buffer_advance(bPtr);
+    }
     TreeNode* createdNode;
     TreeNode** nextNodePtr = &(relRoot->child);
     do
     {
         createdNode = ParseValue(bPtr, nextNodePtr, false);
         if (createdNode == NULL) {
+            
+            AddErrorCallStack(name_of(ParseList));
             return false;
         }
         nextNodePtr = &(createdNode->next);
         SkipWhiteSpace(bPtr,true);
-    } while (buffer_at_cursor(bPtr) == ','); //Because after parsing each value we should have a comma
+        
+    } while ((buffer_at_cursor(bPtr)) == ','); //Because after parsing each value we should have a comma
 
     SkipWhiteSpace(bPtr,true);
     if (!buffer_at_cursor(bPtr) == ']')
@@ -643,6 +662,17 @@ void AddErrorCallStack(char* methodName)
 {
     strcat(gl_error.methodName, "<-");
     strcat(gl_error.methodName, methodName);
+}
+
+void PrintToCursor(JsonBuffer* bPtr)
+{
+    int cursor = bPtr->cursor;
+    printf("hasRead: ");
+    for (int i = 0; i <= cursor; i++)
+    {
+        printf("%c", *(bPtr->jsonString+i));
+    }
+    printf("\n");
 }
 
 

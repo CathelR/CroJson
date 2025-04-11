@@ -16,6 +16,8 @@ void Test3();
 void Test4();
 void Test5();
 void Test6();
+void Test7();
+void Test8();
 
 
 enum PrintType
@@ -35,14 +37,82 @@ int main(int argc, char* argv[])
 	Test4();
 	Test5();
 	Test6();
+	Test7();
+	Test8();
 
 	return 0;
+}
+void Test8()
+{
+	PrintTestsStart("Test8");
+	char* jsonString = "{\"testVal1\":  \"test\",\"testVal2\":{  \"subValName\" : 19.4 ,   \"subVal2Name\" :\n [{\"listObj1\":{\"innerVal1\":14}},{\"listObj2\":{\"innerVal2\":15}},{\"listObj3\":{\"innerVal3\":16}} }}";
+	TreeNode* root = GetJsonTree(jsonString);
+
+	if (root == NULL)
+	{
+		PrintSxs(8, false);
+	}
+
+	TreeNode* result = SearchTree("subVal2Name", root);
+	TreeNode* listresult = GetListItem(1, result);
+	TreeNode* finalresult = SearchTree("innerVal2", listresult);
+	//printf("nodeType: %s\n", (char*)finalresult->nodeType);
+	if (finalresult != NULL)
+	{
+		PrintRes(&finalresult->intVal, P_INT);
+		if (finalresult->intVal==15)
+		{
+			PrintSxs(8, true);
+		}
+		else
+		{
+			PrintSxs(8, false);
+		}
+	}
+	else
+	{
+		printf("Result Was Null - ");
+		PrintSxs(8, false);
+	}
+	PrintTestsEnd("Test8");
+	return;
+}
+
+void Test7()
+{
+	PrintTestsStart("Test7");
+	char* jsonString = "{\"testVal1\":  \"test\",\"testVal2\":{  \"subValName\" : 19.4 },\"testVal3\":15 }";
+	TreeNode* root = GetJsonTree(jsonString);
+
+	if (root == NULL)
+	{
+		PrintSxs(7, false);
+	}
+
+	TreeNode* result = SearchTree("testVal3", root);
+	if (result != NULL)
+	{
+		PrintRes(&result->intVal, P_INT);
+		if (result->intVal == 15)
+		{
+			PrintSxs(7, true);
+		}
+		else
+		{
+			PrintSxs(7, false);
+		}
+	}
+	PrintTestsEnd("Test7");
+	return;
+
+
+
 }
 
 void Test6()
 {
 	PrintTestsStart("Test6");
-	char* jsonString = "{\"testVal1\":  \"test\",\"testVal2\":{  \"subValName\" : 19.4 ,   \"subVal2Name\" :\n [\"word1\",\"word2\",\"word3\"]  }} }";
+	char* jsonString = "{\"testVal1\":  \"test\",\"testVal2\":{  \"subValName\" : 19.4 ,   \"subVal2Name\" :\n [\"word1\",\"word2\",\"word3\"]  } }";
 	TreeNode* root = GetJsonTree(jsonString);
 
 	if (root == NULL)
@@ -51,6 +121,7 @@ void Test6()
 	}
 
 	TreeNode* result = SearchTree("subVal2Name", root);
+	
 	 result = GetListItem(1, result);
 	if (result != NULL)
 	{

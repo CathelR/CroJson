@@ -62,6 +62,8 @@ bool ReadValueName(JsonBuffer*, TreeNode*);
 void AddCharToContent(char, char*, int*);
 TreeNode* SearchTree(char*, TreeNode*);
 TreeNode* GetListItem(int, TreeNode*);
+void PrintToCursor(JsonBuffer*);
+
 
 
 
