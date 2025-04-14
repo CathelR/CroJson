@@ -146,6 +146,7 @@
     <ClCompile Include="Experiments.c" />
     <ClCompile Include="FileOps.c" />
     <ClCompile Include="JsonReaderTests.c" />
+    <ClCompile Include="CroJson_bkp.c" />
     <ClCompile Include="CroJson.c" />
     <ClCompile Include="Utils.c" />
   </ItemGroup>

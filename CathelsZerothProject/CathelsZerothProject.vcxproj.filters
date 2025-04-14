@@ -30,13 +30,16 @@
     <ClCompile Include="JsonReaderTests.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CroJson.c">
+    <ClCompile Include="CroJson_bkp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CroJsonUnitTests.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CroJsonIntTests.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CroJson.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
