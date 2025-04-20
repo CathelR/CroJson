@@ -21,16 +21,24 @@ static Error gl_error;
 typedef struct Token
 {
     char* content;
-    char value;
-
 } Token;
 
 typedef struct StringPool
 {
-    char* stringPool;
+    char* pool;
     char* nextBlock;
     int size;
 } StringPool;
+
+typedef struct TokenPool
+{
+    Token* tokenPool;
+    int tokenNextIdx;
+
+    StringPool stringPool;
+}TokenPool;
+
+
 /*==================================================================================================================================================*/
 
 /*Macro definition*/
@@ -78,47 +86,125 @@ TreeNode* GetJsonTree(char* jsonString)
     }
 }
 
+bool AddToken(char* tokenVal, TokenPool* tokens)
+{
+    int lengthToAdd = strlen(tokenVal)+1;
+    strcpy(*tokens->stringPool.nextBlock, tokenVal);
+    *(tokens->tokenPool + tokens->tokenNextIdx)->content = tokens->stringPool.nextBlock;
+    tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
+    tokens->tokenNextIdx += 1;
+    return true;
+}
+
 bool TokenizeJson(JsonBuffer* bPtr)
 {
-    StringPool* pool = malloc(sizeof(StringPool));
-    pool->stringPool = malloc(bPtr->length * sizeof(char));
-    Token* tokens = malloc(bPtr->length*sizeof(Token));
-    int currToken = 0;
+    TokenPool tokens;
+    tokens.tokenPool  = malloc(bPtr->length * sizeof(Token));
+    tokens.stringPool.pool = malloc(2*bPtr->length * sizeof(char));
+
+    int cursorPos = 0;
+    short countQuote = 0;
+    short countColon = 0;
+
     for (int i = 0; i < bPtr->length; i++)
     {
         switch (bPtr->jsonString[i])
         {
         case '{':
-            tokens + currToken = NewCharToken();
+            if (IsCurlyOpenValid(countQuote, countColon) || i == 0)
+            {
+                AddToken("{\0", &tokens);
+            }
+            else return false;
             break;
         case '}':
-
-            //add token
-            break;
+            if (IsCurlyCloseValid(countQuote, countColon))
+            {
+                AddToken("}\0", &tokens);
+                countColon = 0;
+                countQuote = 0;
+            }
+            else return false;
         case '"':
-            //readcontent
-            //Add content as token
+            if (IsQuoteValid(countQuote, countColon))
+            {
+                char* tempContent = ReadContent(); //Decide on how to handle. If we return a char* then we pass that to add token,
+                //Need to also advance the cursor here - jump forward by string length -easy..
+                if (tempContent != NULL)
+                {
+                    AddToken(tempContent, &tokens);
+                    countQuote++;
+                }
+                free(tempContent);
+            }
+            else return false;
+
             break;
         case ':':
-            //Skipwhitespace -> read content
-            //Do read content
-            //add token
+            if (IsColonValid(countQuote, countColon))
+            {
+                AddToken(":\0", &tokens);
+                countColon++;
+            }
+
             break;
         case ',':
-            //addtoken
+            if (IsCommaValid(countQuote, countColon))
+            {
+                AddToken(", \0", &tokens);
+                countColon = 0;
+                countQuote = 0;
+            }
+
             break;
         case '[':
-            //add token
+
             break;
+          
         case ']':
-            //addtoken
+
             break;
         default:
+
             continue;
         }
     }
 }
 //Check valid could be something like a tree for each character.
+
+bool IsQuoteValid(short countQuote, short countColon)
+{
+    if (countColon == 0 && (countQuote == 0 || countQuote == 1)) return true;
+    else if (countColon == 1 && countQuote == 3) return true;
+    else if (countColon == 1 && countQuote == 2) return true;
+    else return false;
+}
+
+bool IsCommaValid(short countQuote, short countColon)
+{
+    if (countColon == 1 && countQuote == 2) return true;
+    else if (countColon == 1 && countQuote == 4) return true;
+    else return false;
+}
+
+bool IsColonValid(short countQuote, short countColon)
+{
+    if (countColon == 0 && countQuote == 2) return true;
+    else return false;
+}
+
+bool IsCurlyOpenValid(short countQuote, short countColon)
+{
+    if (countColon == 1 && countQuote == 2) return true;
+    else return false;
+}
+
+bool IsCurlyCloseValid(short countQuote, short countColon)
+{
+    if (countColon == 1 && countQuote == 2) return true;
+    else if (countColon == 1 && countQuote == 4) return true;
+    else return false;
+}
 
 
 void ParseObject(char* jsonString)
@@ -138,29 +224,15 @@ void ParseObject(char* jsonString)
     }
 }
 
-void ParseList()
+
+
+
+
+
+
+//Now returns position of next free content
+int ReadContent(JsonBuffer* bPtr, bool isString, char* contentSpace)
 {
-
-}
-
-
-void CheckValid()
-{
-    
-}
-
-
-
-//"":, - for a non string, we immediately return - fine, for a non string...?
-/*Method to read text - works for strings and non strings depending on checking method passed in*/
-char* ReadContent(JsonBuffer* bPtr, bool isString)
-{
-    char* string = malloc(bPtr->length - bPtr->cursor);
-    if (string == NULL)
-    {
-        SetError("Memory Allocation failure", name_of(ReadContent), bPtr->cursor);
-        return NULL;
-    }
     int index = 0;
     Byte byte;
     byte.flags = 0;
