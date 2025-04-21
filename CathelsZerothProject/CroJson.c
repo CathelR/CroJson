@@ -86,126 +86,6 @@ TreeNode* GetJsonTree(char* jsonString)
     }
 }
 
-bool AddToken(char* tokenVal, TokenPool* tokens)
-{
-    int lengthToAdd = strlen(tokenVal)+1;
-    strcpy(*tokens->stringPool.nextBlock, tokenVal);
-    *(tokens->tokenPool + tokens->tokenNextIdx)->content = tokens->stringPool.nextBlock;
-    tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
-    tokens->tokenNextIdx += 1;
-    return true;
-}
-
-bool TokenizeJson(JsonBuffer* bPtr)
-{
-    TokenPool tokens;
-    tokens.tokenPool  = malloc(bPtr->length * sizeof(Token));
-    tokens.stringPool.pool = malloc(2*bPtr->length * sizeof(char));
-
-    int cursorPos = 0;
-    short countQuote = 0;
-    short countColon = 0;
-
-    for (int i = 0; i < bPtr->length; i++)
-    {
-        switch (bPtr->jsonString[i])
-        {
-        case '{':
-            if (IsCurlyOpenValid(countQuote, countColon) || i == 0)
-            {
-                AddToken("{\0", &tokens);
-            }
-            else return false;
-            break;
-        case '}':
-            if (IsCurlyCloseValid(countQuote, countColon))
-            {
-                AddToken("}\0", &tokens);
-                countColon = 0;
-                countQuote = 0;
-            }
-            else return false;
-        case '"':
-            if (IsQuoteValid(countQuote, countColon))
-            {
-                char* tempContent = ReadContent(); //Decide on how to handle. If we return a char* then we pass that to add token,
-                //Need to also advance the cursor here - jump forward by string length -easy..
-                if (tempContent != NULL)
-                {
-                    AddToken(tempContent, &tokens);
-                    countQuote++;
-                }
-                free(tempContent);
-            }
-            else return false;
-
-            break;
-        case ':':
-            if (IsColonValid(countQuote, countColon))
-            {
-                AddToken(":\0", &tokens);
-                countColon++;
-            }
-
-            break;
-        case ',':
-            if (IsCommaValid(countQuote, countColon))
-            {
-                AddToken(", \0", &tokens);
-                countColon = 0;
-                countQuote = 0;
-            }
-
-            break;
-        case '[':
-
-            break;
-          
-        case ']':
-
-            break;
-        default:
-
-            continue;
-        }
-    }
-}
-//Check valid could be something like a tree for each character.
-
-bool IsQuoteValid(short countQuote, short countColon)
-{
-    if (countColon == 0 && (countQuote == 0 || countQuote == 1)) return true;
-    else if (countColon == 1 && countQuote == 3) return true;
-    else if (countColon == 1 && countQuote == 2) return true;
-    else return false;
-}
-
-bool IsCommaValid(short countQuote, short countColon)
-{
-    if (countColon == 1 && countQuote == 2) return true;
-    else if (countColon == 1 && countQuote == 4) return true;
-    else return false;
-}
-
-bool IsColonValid(short countQuote, short countColon)
-{
-    if (countColon == 0 && countQuote == 2) return true;
-    else return false;
-}
-
-bool IsCurlyOpenValid(short countQuote, short countColon)
-{
-    if (countColon == 1 && countQuote == 2) return true;
-    else return false;
-}
-
-bool IsCurlyCloseValid(short countQuote, short countColon)
-{
-    if (countColon == 1 && countQuote == 2) return true;
-    else if (countColon == 1 && countQuote == 4) return true;
-    else return false;
-}
-
 
 void ParseObject(char* jsonString)
 {
@@ -222,65 +102,220 @@ void ParseObject(char* jsonString)
     {
 
     }
+
+
+}
+static bool AddToken(char* tokenVal, TokenPool* tokens)
+{
+    int lengthToAdd = strlen(tokenVal)+1;
+    strcpy(*tokens->stringPool.nextBlock, tokenVal);
+    *(tokens->tokenPool + tokens->tokenNextIdx)->content = tokens->stringPool.nextBlock;
+    tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
+    tokens->tokenNextIdx += 1;
+    return true;
+}
+
+static bool TokenizeJson(JsonBuffer* bPtr)
+{
+    TokenPool tokens;
+    tokens.tokenPool  = malloc(bPtr->length * sizeof(Token));
+    tokens.stringPool.pool = malloc(2*bPtr->length * sizeof(char));
+
+    int cursorPos = 0;
+    short countQuote = 0;
+    short countColon = 0;
+
+    for (bPtr->cursor = 0; bPtr->cursor < bPtr->length; bPtr->cursor++)
+    {   
+        switch (bPtr->jsonString[bPtr->cursor])
+        {
+        case '{':
+            if (IsCurlyOpenValid(countQuote, countColon) || bPtr->cursor == 0)
+            {
+                AddToken("{\0", &tokens);
+            }
+            else return false;
+            break;
+        case '}':
+            if (IsCurlyCloseValid(countQuote, countColon))
+            {
+                AddToken("}\0", &tokens);
+                countColon = 0;
+                countQuote = 0;
+            }
+            else return false;
+        case '"':
+            if (IsQuoteValid(countQuote, countColon))
+            {
+                char* tempContent = ReadContent(); //Returns the pointer to the position in the pool
+                if (tempContent != NULL)
+                {
+                    AddToken(tempContent, &tokens);
+                    bPtr->cursor += strlen(tempContent); //Jump forward
+                    countQuote++;
+                }
+                free(tempContent);
+            }
+            else return false;
+
+            break;
+        case ':':
+            if (IsColonValid(countQuote, countColon))
+            {
+                AddToken(":\0", &tokens);
+                countColon++;
+            }
+            else return false;
+            break;
+        case ',':
+            if (IsCommaValid(countQuote, countColon))
+            {
+                AddToken(",\0", &tokens);
+                countColon = 0;
+                countQuote = 0;
+            }
+            else return false;
+            break;
+        case '[':
+            if (IsSquareOpenValid(countQuote,countColon))
+            {
+                AddToken("[\0", &tokens);
+            }
+            else return false;
+            break;
+          
+        case ']':
+            if (IsSquareCloseValid(countQuote,countColon))
+            {
+                AddToken("]\0", &tokens);
+            }
+            else return false;
+            break;
+        default:
+            //SkipWhiteSpace
+            if (countColon == 1 && countQuote == 2)
+            {
+                char* tempContent = ReadCOntent();
+                if (tempContent != NULL) {
+                    AddToken(tempContent, &tokens);
+
+                    i += strlen(tempContent); //Jump forward
+                }
+                free(tempContent);
+            }
+            else return false;
+            continue;
+        }
+    }
+}
+
+
+static bool IsQuoteValid(short countQuote, short countColon)
+{
+    if (countColon == 0 && (countQuote == 0 || countQuote == 1)) return true;
+    else if (countColon == 1 && countQuote == 3) return true;//dont need if reading content
+    else if (countColon == 1 && countQuote == 2) return true;
+    else return false;
+}
+
+static bool IsCommaValid(short countQuote, short countColon)
+{
+    if (countColon == 1 && countQuote == 2) return true;
+    else if (countColon == 1 && countQuote == 4) return true;
+    else return false;
+}
+
+static bool IsColonValid(short countQuote, short countColon)
+{
+    if (countColon == 0 && countQuote == 2) return true;
+    else return false;
+}
+
+static bool IsCurlyOpenValid(short countQuote, short countColon)
+{
+    if (countColon == 1 && countQuote == 2) return true;
+    else return false;
+}
+
+static bool IsCurlyCloseValid(short countQuote, short countColon)
+{
+    if (countColon == 1 && countQuote == 2) return true;
+    else if (countColon == 1 && countQuote == 4) return true;
+    else return false;
+}
+
+static bool IsSquareOpenValid(short countQuote, short countColon)
+{
+    if (countColon == 1 && countQuote == 2) return true;
+    else return false;
+}
+
+static bool IsSquareCloseValid(short countQuote, short countColon)
+{
+    if (countColon == 1 && countQuote == 2) return true;
+    else if (countColon == 1 && countQuote == 4) return true;
+    else return false;
+}
+
+void SkipWhiteSpace(JsonBuffer* bPtr, bool doAdvanceRead)
+{
+    while (buffer_can_advance(bPtr))
+    {
+        //char currChar = buffer_at_cursor(bPtr);
+        char nextChar = buffer_at_offset(bPtr, 1);
+        if (char_is_whitespace(nextChar))
+        {
+            buffer_advance(bPtr);
+        }
+        else
+        {
+            break;
+        }
+    }
+    if (doAdvanceRead)
+    {
+        if (char_is_whitespace((buffer_at_cursor(bPtr))) && (buffer_can_advance(bPtr)))
+        {
+            buffer_advance(bPtr);
+        }
+    }
+
 }
 
 
 
-
-
-
-
 //Now returns position of next free content
-int ReadContent(JsonBuffer* bPtr, bool isString, char* contentSpace)
+char* ReadContent(JsonBuffer* bPtr, bool isString, char* stringBuff)//would be better to just pass in the location of the memory to store it in up front surely. 
 {
     int index = 0;
     Byte byte;
     byte.flags = 0;
     void (*CheckChar)(JsonBuffer*, char*, int*, Byte*);
+    AddCharToContent('\"', content, indexPtr);//Need to include the "? Otherwise we need to record if the token was keyval, string, or other
 
     if (isString && buffer_can_advance(bPtr))
     {
         CheckChar = &CheckCharString;
-        if ((buffer_at_offset(bPtr, 1)) != ('\"'))
-        {
-            SetError("Syntax Error, missing open quote", name_of(ReadContent), bPtr->cursor);
-            free(string);
-            return NULL;
-        }
-        else
-        {
-            buffer_advance(bPtr);
-        }
     }
     else
     {
         CheckChar = &CheckCharNonString;
     }
+
     while (buffer_can_advance(bPtr))
     {
         buffer_advance(bPtr); /*Need to advance before checking, otherwise we lose the last character in the string*/
-        CheckChar(bPtr, string, &index, &byte);
+        CheckChar(bPtr, stringBuff, &index, &byte);
         if (byte.flags & read_finished) break;
     }
 
     if (byte.flags & read_success)
     {
-        *(string + index) = '\0';
-        char* holder = string;
-        string = realloc(string, (index + 1) * sizeof(char));
-        //printf("%s\n", string);
-        if (string == NULL)
-        {
-            SetError("Memory Allocation failure", name_of(ReadContent), bPtr->cursor);
-            free(holder);
-            return NULL;
-        }
-        else return string;
+        *(stringBuff + index) = '\0';//Basically we cap it off - when we return we return the pointer to? This string, how do we get the pointer to the next string?
     }
     else
     {
         SetError("Failed to read content", name_of(ReadContent), bPtr->cursor);
-        free(string);
         return NULL;
     }
 }
@@ -296,6 +331,7 @@ void CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr, Byte* byte)
     case'\"':
         if (buffer_can_advance(bPtr))
         {
+            AddCharToContent('\"', content, indexPtr);
             //printf("bef: %c\n", buffer_at_cursor(bPtr));
             buffer_advance(bPtr);
             //printf("aft: %c\n", buffer_at_cursor(bPtr));
@@ -348,6 +384,7 @@ void CheckCharString(JsonBuffer* bPtr, char* content, int* indexPtr, Byte* byte)
 
 
 /*We don't worry about whether the char is valid here, we're just looking to read content*/
+//^ May have to change
 void CheckCharNonString(JsonBuffer* bPtr, char* content, int* indexPtr, Byte* byte)
 {
     char currChar = buffer_at_cursor(bPtr);
@@ -387,7 +424,7 @@ void SetError(char* errorMessage, char* methodName, int charPos)
 
 }
 
-void AddErrorCallStack(char* methodName)
+void AddErrorContext(char* methodName)
 {
     strcat(gl_error.methodName, "<-");
     strcat(gl_error.methodName, methodName);
