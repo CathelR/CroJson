@@ -105,21 +105,35 @@ void ParseObject(char* jsonString)
 
 
 }
-static bool AddToken(char* tokenVal, TokenPool* tokens)
+
+//Designed to work with passing in the string, not if the string is already  there
+static bool AddSyntaxToken(char* tokenVal, TokenPool* tokens)
 {
     int lengthToAdd = strlen(tokenVal)+1;
-    strcpy(*tokens->stringPool.nextBlock, tokenVal);
+    strcpy(*tokens->stringPool.nextBlock, tokenVal);//This bit we dont want to do after read content - could perhaps split out into separate function
+    //But actually it's quite handy to have it here
     *(tokens->tokenPool + tokens->tokenNextIdx)->content = tokens->stringPool.nextBlock;
     tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
     tokens->tokenNextIdx += 1;
     return true;
 }
 
-static bool TokenizeJson(JsonBuffer* bPtr)
+//Designed to work with passing in the string, not if the string is already  there
+static bool AddContentToken(TokenPool* tokens)
 {
-    TokenPool tokens;
-    tokens.tokenPool  = malloc(bPtr->length * sizeof(Token));
-    tokens.stringPool.pool = malloc(2*bPtr->length * sizeof(char));
+    //No, handier to have it where it was
+    int lengthToAdd = strlen(tokens->stringPool.nextBlock) + 1;
+    *(tokens->tokenPool + tokens->tokenNextIdx)->content = tokens->stringPool.nextBlock;
+    tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
+    tokens->tokenNextIdx += 1;
+    return true;
+}
+
+static TokenPool* TokenizeJson(JsonBuffer* bPtr)
+{
+    TokenPool* tokens = malloc(sizeof(TokenPool));
+    tokens->tokenPool  = malloc(bPtr->length * sizeof(Token));
+    tokens->stringPool.pool = malloc(2*bPtr->length * sizeof(char));
 
     int cursorPos = 0;
     short countQuote = 0;
@@ -132,14 +146,14 @@ static bool TokenizeJson(JsonBuffer* bPtr)
         case '{':
             if (IsCurlyOpenValid(countQuote, countColon) || bPtr->cursor == 0)
             {
-                AddToken("{\0", &tokens);
+                AddSyntaxToken("{\0", &tokens);
             }
             else return false;
             break;
         case '}':
             if (IsCurlyCloseValid(countQuote, countColon))
             {
-                AddToken("}\0", &tokens);
+                AddSyntaxToken("}\0", &tokens);
                 countColon = 0;
                 countQuote = 0;
             }
@@ -147,10 +161,10 @@ static bool TokenizeJson(JsonBuffer* bPtr)
         case '"':
             if (IsQuoteValid(countQuote, countColon))
             {
-                char* tempContent = ReadContent(); //Returns the pointer to the position in the pool
+                char* tempContent = ReadContent(bPtr,true,tokens->stringPool.nextBlock); //Returns the pointer to the position in the pool
                 if (tempContent != NULL)
                 {
-                    AddToken(tempContent, &tokens);
+                    AddContentToken( &tokens);
                     bPtr->cursor += strlen(tempContent); //Jump forward
                     countQuote++;
                 }
@@ -162,7 +176,7 @@ static bool TokenizeJson(JsonBuffer* bPtr)
         case ':':
             if (IsColonValid(countQuote, countColon))
             {
-                AddToken(":\0", &tokens);
+                AddSyntaxToken(":\0", &tokens);
                 countColon++;
             }
             else return false;
@@ -170,7 +184,7 @@ static bool TokenizeJson(JsonBuffer* bPtr)
         case ',':
             if (IsCommaValid(countQuote, countColon))
             {
-                AddToken(",\0", &tokens);
+                AddSyntaxToken(",\0", &tokens);
                 countColon = 0;
                 countQuote = 0;
             }
@@ -179,7 +193,7 @@ static bool TokenizeJson(JsonBuffer* bPtr)
         case '[':
             if (IsSquareOpenValid(countQuote,countColon))
             {
-                AddToken("[\0", &tokens);
+                AddSyntaxToken("[\0", &tokens);
             }
             else return false;
             break;
@@ -187,7 +201,7 @@ static bool TokenizeJson(JsonBuffer* bPtr)
         case ']':
             if (IsSquareCloseValid(countQuote,countColon))
             {
-                AddToken("]\0", &tokens);
+                AddSyntaxToken("]\0", &tokens);
             }
             else return false;
             break;
@@ -195,11 +209,10 @@ static bool TokenizeJson(JsonBuffer* bPtr)
             //SkipWhiteSpace
             if (countColon == 1 && countQuote == 2)
             {
-                char* tempContent = ReadCOntent();
+                char* tempContent = ReadContent(bPtr, false, tokens->stringPool.nextBlock);
                 if (tempContent != NULL) {
-                    AddToken(tempContent, &tokens);
-
-                    i += strlen(tempContent); //Jump forward
+                    AddContentToken(tempContent, &tokens);
+                    bPtr->cursor += strlen(tempContent); //Jump forward
                 }
                 free(tempContent);
             }
