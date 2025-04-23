@@ -141,7 +141,7 @@ static TokenPool* TokenizeJson(JsonBuffer* bPtr)
 
     for (bPtr->cursor = 0; bPtr->cursor < bPtr->length; bPtr->cursor++)
     {   
-        switch (bPtr->jsonString[bPtr->cursor])
+        switch (buffer_at_cursor(bPtr))
         {
         case '{':
             if (IsCurlyOpenValid(countQuote, countColon) || bPtr->cursor == 0)
@@ -206,9 +206,12 @@ static TokenPool* TokenizeJson(JsonBuffer* bPtr)
             else return false;
             break;
         default:
-            //SkipWhiteSpace
-            if (countColon == 1 && countQuote == 2)
+            SkipWhiteSpace(bPtr);
+            //At this point, if we have skipped white space we are BEFORE the character
+            if (countColon == 1 && countQuote == 2 && buffer_at_offset(bPtr,1) != '\"') //So check wih offset
             {
+                //We then come in here with the offset
+                //Also change this to use the string pool
                 char* tempContent = ReadContent(bPtr, false, tokens->stringPool.nextBlock);
                 if (tempContent != NULL) {
                     AddContentToken(tempContent, &tokens);
@@ -270,12 +273,11 @@ static bool IsSquareCloseValid(short countQuote, short countColon)
     else return false;
 }
 
-void SkipWhiteSpace(JsonBuffer* bPtr, bool doAdvanceRead)
+void SkipWhiteSpace(JsonBuffer* bPtr)
 {
     while (buffer_can_advance(bPtr))
     {
-        //char currChar = buffer_at_cursor(bPtr);
-        char nextChar = buffer_at_offset(bPtr, 1);
+        char nextChar = buffer_at_offset(bPtr,1);
         if (char_is_whitespace(nextChar))
         {
             buffer_advance(bPtr);
@@ -285,14 +287,6 @@ void SkipWhiteSpace(JsonBuffer* bPtr, bool doAdvanceRead)
             break;
         }
     }
-    if (doAdvanceRead)
-    {
-        if (char_is_whitespace((buffer_at_cursor(bPtr))) && (buffer_can_advance(bPtr)))
-        {
-            buffer_advance(bPtr);
-        }
-    }
-
 }
 
 
