@@ -208,18 +208,21 @@ static TokenPool* TokenizeJson(JsonBuffer* bPtr)
         default:
             SkipWhiteSpace(bPtr);
             //At this point, if we have skipped white space we are BEFORE the character
-            if (countColon == 1 && countQuote == 2 && buffer_at_offset(bPtr,1) != '\"') //So check wih offset
+            if (buffer_can_advance(bPtr))
             {
-                //We then come in here with the offset
-                //Also change this to use the string pool
-                char* tempContent = ReadContent(bPtr, false, tokens->stringPool.nextBlock);
-                if (tempContent != NULL) {
-                    AddContentToken(tempContent, &tokens);
-                    bPtr->cursor += strlen(tempContent); //Jump forward
+                if (countColon == 1 && countQuote == 2 && buffer_at_offset(bPtr, 1) != '\"') //Need this to return success sa well as if worth it
+                {
+                    buffer_advance(bPtr);
+                    char* tempContent = ReadContent(bPtr, false, tokens->stringPool.nextBlock);//Convert to use string popol
+                    if (tempContent != NULL) {
+                        AddContentToken(tempContent, &tokens);
+                        bPtr->cursor += strlen(tempContent); //Jump forward
+                    }
+                    free(tempContent);
                 }
-                free(tempContent);
+                else return false;
             }
-            else return false;
+            
             continue;
         }
     }
