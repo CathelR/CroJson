@@ -140,7 +140,11 @@ static TokenPool* TokenizeJson(JsonBuffer* bPtr)
     short countColon = 0;
 
     for (bPtr->cursor = 0; bPtr->cursor < bPtr->length; bPtr->cursor++)
-    {   
+    {
+        if (char_is_whitespace(buffer_at_cursor(bPtr)))
+        {
+            SkipWhiteSpace(bPtr);
+        }
         switch (buffer_at_cursor(bPtr))
         {
         case '{':
@@ -206,27 +210,22 @@ static TokenPool* TokenizeJson(JsonBuffer* bPtr)
             else return false;
             break;
         default:
-            SkipWhiteSpace(bPtr);
-            //At this point, if we have skipped white space we are BEFORE the character
-            if (buffer_can_advance(bPtr))
+            if (countColon == 1 && countQuote == 2)
             {
-                if (countColon == 1 && countQuote == 2 && buffer_at_offset(bPtr, 1) != '\"') //Need this to return success sa well as if worth it
-                {
-                    buffer_advance(bPtr);
-                    char* tempContent = ReadContent(bPtr, false, tokens->stringPool.nextBlock);//Convert to use string popol
-                    if (tempContent != NULL) {
-                        AddContentToken(tempContent, &tokens);
-                        bPtr->cursor += strlen(tempContent); //Jump forward
-                    }
-                    free(tempContent);
+                char* tempContent = ReadContent(bPtr, false, tokens->stringPool.nextBlock);//Convert to use string popol
+                if (tempContent != NULL) {
+                    AddContentToken(tempContent, &tokens);
+                    bPtr->cursor += strlen(tempContent); //Jump forward
                 }
-                else return false;
+                free(tempContent);
             }
-            
+            else return false;
             continue;
         }
     }
 }
+
+
 
 
 static bool IsQuoteValid(short countQuote, short countColon)
@@ -276,6 +275,7 @@ static bool IsSquareCloseValid(short countQuote, short countColon)
     else return false;
 }
 
+//While the current char is whitespace, skips the whitespace and ends on the first non whitespace char
 void SkipWhiteSpace(JsonBuffer* bPtr)
 {
     while (buffer_can_advance(bPtr))
@@ -289,6 +289,10 @@ void SkipWhiteSpace(JsonBuffer* bPtr)
         {
             break;
         }
+    }
+    if (buffer_can_advance(bPtr))
+    {
+        buffer_advance(bPtr);
     }
 }
 
