@@ -33,13 +33,16 @@
     <ClCompile Include="CroJson_bkp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CroJsonUnitTests.c">
+    <ClCompile Include="CroJsonUnitTests-TokenParsing.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CroJsonIntTests.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CroJson.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CroJsonUnitTests-Tokenization.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

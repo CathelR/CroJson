@@ -12,6 +12,27 @@ enum NodeType
     STRING
 };
 
+//Would be handier for the run through if each one pointed to the next
+typedef struct Token
+{
+    char* content;
+} Token;
+
+typedef struct StringPool
+{
+    char* pool;
+    char* nextBlock;
+    int size;
+} StringPool;
+
+typedef struct TokenPool
+{
+    Token* tokenPool;
+    int tokenNextIdx;
+
+    StringPool stringPool;
+}TokenPool;
+
 
 typedef struct TreeNode
 {
@@ -65,20 +86,20 @@ TreeNode* GetListItem(int, TreeNode*);
 void PrintToCursor(JsonBuffer*);
 
 
-
-
-
-/*
-* -> Used for the structure validation methoid which is currently on hold.
+static TokenPool* TokenizeJson(JsonBuffer* bPtr);
+static bool AddContentToken(TokenPool* tokens);
+static bool AddSyntaxToken(char* tokenVal, TokenPool* tokens);
 bool IsQuoteValid(short, short);
 bool IsCommaValid(short, short);
 bool IsColonValid(short, short);
 bool IsCurlyOpValid(short, short);
 bool IsCurlyClValid(short, short);
 int IsJsonListValid(char*, int);
+/*
 int ValidateObjectList(char*, int);
 int ValidateStringList(char*, int);
 int ValidateValueList(char*, int);
 int ValidateListList(char*, int);
 */
+
 #endif

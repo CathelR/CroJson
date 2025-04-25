@@ -18,25 +18,7 @@ typedef struct Error
 }Error;
 static Error gl_error;
 
-typedef struct Token
-{
-    char* content;
-} Token;
 
-typedef struct StringPool
-{
-    char* pool;
-    char* nextBlock;
-    int size;
-} StringPool;
-
-typedef struct TokenPool
-{
-    Token* tokenPool;
-    int tokenNextIdx;
-
-    StringPool stringPool;
-}TokenPool;
 
 
 /*==================================================================================================================================================*/
@@ -54,12 +36,12 @@ typedef struct TokenPool
 #define read_finished (1<<0)
 #define read_success (1<<1)
 
-
+/*
 //Top level - Interface to recursive methods
 TreeNode* GetJsonTree(char* jsonString)
 {
     bool isSuccess = false;
-    /*Fine to use a local instance of JsonBuffer here as we're not reutrning it, its cleanup gets handled when the method returns*/
+    //Fine to use a local instance of JsonBuffer here as we're not reutrning it, its cleanup gets handled when the method returns
     JsonBuffer buffer = { jsonString, 0,strlen(jsonString),0 };
     JsonBuffer* bPtr = &buffer;
 
@@ -85,8 +67,10 @@ TreeNode* GetJsonTree(char* jsonString)
         return NULL;
     }
 }
+*/
 
 
+/*
 void ParseObject(char* jsonString)
 {
     Token* pool = InitializePool(strlen(jsonString));
@@ -98,38 +82,18 @@ void ParseObject(char* jsonString)
     //If theres sub objects handle that here
     // 
     //So here we're dealing with a string if tokens
-    while (/*Theres still tokens*/)
+    while ()
     {
 
     }
 
 
 }
+*/
 
-//Designed to work with passing in the string, not if the string is already  there
-static bool AddSyntaxToken(char* tokenVal, TokenPool* tokens)
-{
-    int lengthToAdd = strlen(tokenVal)+1;
-    strcpy(*tokens->stringPool.nextBlock, tokenVal);//This bit we dont want to do after read content - could perhaps split out into separate function
-    //But actually it's quite handy to have it here
-    *(tokens->tokenPool + tokens->tokenNextIdx)->content = tokens->stringPool.nextBlock;
-    tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
-    tokens->tokenNextIdx += 1;
-    return true;
-}
 
-//Designed to work with passing in the string, not if the string is already  there
-static bool AddContentToken(TokenPool* tokens)
-{
-    //No, handier to have it where it was
-    int lengthToAdd = strlen(tokens->stringPool.nextBlock) + 1;
-    *(tokens->tokenPool + tokens->tokenNextIdx)->content = tokens->stringPool.nextBlock;
-    tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
-    tokens->tokenNextIdx += 1;
-    return true;
-}
 
-static TokenPool* TokenizeJson(JsonBuffer* bPtr)
+TokenPool* TokenizeJson(JsonBuffer* bPtr)
 {
     TokenPool* tokens = malloc(sizeof(TokenPool));
     tokens->tokenPool  = malloc(bPtr->length * sizeof(Token));
@@ -296,7 +260,28 @@ void SkipWhiteSpace(JsonBuffer* bPtr)
     }
 }
 
+//Designed to work with passing in the string, not if the string is already  there
+static bool AddSyntaxToken(char* tokenVal, TokenPool* tokens)
+{
+    int lengthToAdd = strlen(tokenVal) + 1;
+    strcpy(*tokens->stringPool.nextBlock, tokenVal);//This bit we dont want to do after read content - could perhaps split out into separate function
+    //But actually it's quite handy to have it here
+    *(tokens->tokenPool + tokens->tokenNextIdx)->content = tokens->stringPool.nextBlock;
+    tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
+    tokens->tokenNextIdx += 1;
+    return true;
+}
 
+//Designed to work with passing in the string, not if the string is already  there
+static bool AddContentToken(TokenPool* tokens)
+{
+    //No, handier to have it where it was
+    int lengthToAdd = strlen(tokens->stringPool.nextBlock) + 1;
+    *(tokens->tokenPool + tokens->tokenNextIdx)->content = tokens->stringPool.nextBlock;
+    tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
+    tokens->tokenNextIdx += 1;
+    return true;
+}
 
 //Now returns position of next free content
 char* ReadContent(JsonBuffer* bPtr, bool isString, char* stringBuff)//would be better to just pass in the location of the memory to store it in up front surely. 
@@ -305,7 +290,8 @@ char* ReadContent(JsonBuffer* bPtr, bool isString, char* stringBuff)//would be b
     Byte byte;
     byte.flags = 0;
     void (*CheckChar)(JsonBuffer*, char*, int*, Byte*);
-    AddCharToContent('\"', content, indexPtr);//Need to include the "? Otherwise we need to record if the token was keyval, string, or other
+    //We have already established that we want whatever char the cursor was on - so we add
+    AddCharToContent(buffer_at_cursor(bPtr), stringBuff, &index);
 
     if (isString && buffer_can_advance(bPtr))
     {
