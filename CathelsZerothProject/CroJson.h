@@ -28,7 +28,7 @@ typedef struct StringPool
 typedef struct TokenPool
 {
     Token* tokenPool;
-    int tokenNextIdx;
+    int tokenCount;
 
     StringPool stringPool;
 }TokenPool;
@@ -60,12 +60,12 @@ typedef struct Byte
     unsigned int flags : 8;
 }Byte;
 
-
+/*
 bool ParseFloat(char*, float*);
 bool ParseInt(char*, int*);
 void PrintError();
 void SetError(char*, char*, int);
-void AddErrorCallStack(char* );
+void AddErrorContext(char* );
 TreeNode* CreateNamedNode(JsonBuffer*);
 bool AttatchNodeToRoot(TreeNode*, TreeNode*);
 void SkipWhiteSpace(JsonBuffer*, bool);
@@ -85,6 +85,7 @@ TreeNode* SearchTree(char*, TreeNode*);
 TreeNode* GetListItem(int, TreeNode*);
 void PrintToCursor(JsonBuffer*);
 
+*/
 
 static TokenPool* TokenizeJson(JsonBuffer* bPtr);
 static bool AddContentToken(TokenPool* tokens);
@@ -92,9 +93,19 @@ static bool AddSyntaxToken(char* tokenVal, TokenPool* tokens);
 bool IsQuoteValid(short, short);
 bool IsCommaValid(short, short);
 bool IsColonValid(short, short);
-bool IsCurlyOpValid(short, short);
-bool IsCurlyClValid(short, short);
-int IsJsonListValid(char*, int);
+bool IsCurlyOpenValid(short, short);
+bool IsCurlyCloseValid(short, short);
+bool IsSquareOpenValid(short, short);
+bool IsSquareCloseValid(short, short);
+char* ReadContent(JsonBuffer*, bool, char*);
+void CheckCharString(JsonBuffer*, char*, int*, Byte*);
+void CheckCharNonString(JsonBuffer*, char*, int*, Byte*);
+void AddCharToContent(char, char*, int*);
+void PrintError();
+void SetError(char*, char*, int);
+void AddErrorContext(char*);
+void SkipWhiteSpace(JsonBuffer*)
+//int IsJsonListValid(char*, int);
 /*
 int ValidateObjectList(char*, int);
 int ValidateStringList(char*, int);

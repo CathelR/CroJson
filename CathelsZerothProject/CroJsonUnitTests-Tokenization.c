@@ -23,7 +23,10 @@ void TokenizationTests_Valid();
 
 void PrintTokens(TokenPool* pool)
 {
-	while(pool->tokenPool.)
+	for (int i = 0; i < pool->tokenCount; i++)
+	{
+		printf("%s | ", (pool->tokenPool + i)->content);
+	}
 }
 
 int main(int argc, char* argv[])

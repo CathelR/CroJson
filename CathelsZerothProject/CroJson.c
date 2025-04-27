@@ -266,9 +266,9 @@ static bool AddSyntaxToken(char* tokenVal, TokenPool* tokens)
     int lengthToAdd = strlen(tokenVal) + 1;
     strcpy(*tokens->stringPool.nextBlock, tokenVal);//This bit we dont want to do after read content - could perhaps split out into separate function
     //But actually it's quite handy to have it here
-    *(tokens->tokenPool + tokens->tokenNextIdx)->content = tokens->stringPool.nextBlock;
+    *(tokens->tokenPool + tokens->tokenCount)->content = tokens->stringPool.nextBlock;
     tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
-    tokens->tokenNextIdx += 1;
+    tokens->tokenCount += 1;
     return true;
 }
 
@@ -277,9 +277,9 @@ static bool AddContentToken(TokenPool* tokens)
 {
     //No, handier to have it where it was
     int lengthToAdd = strlen(tokens->stringPool.nextBlock) + 1;
-    *(tokens->tokenPool + tokens->tokenNextIdx)->content = tokens->stringPool.nextBlock;
+    *(tokens->tokenPool + tokens->tokenCount)->content = tokens->stringPool.nextBlock;
     tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
-    tokens->tokenNextIdx += 1;
+    tokens->tokenCount += 1;
     return true;
 }
 

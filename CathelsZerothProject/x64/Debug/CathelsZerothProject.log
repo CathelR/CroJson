@@ -1,23 +1,23 @@
 ﻿  CroJsonIntTests.c
-  CroJsonUnitTests.c
+  CroJsonUnitTests-TokenParsing.c
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(60,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(80,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(98,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(119,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(137,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(158,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(180,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(219,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(236,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(253,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(271,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(291,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-TokenParsing.c(302,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   Main.c
-  Experiments.c
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(60,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(80,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(98,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(119,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(137,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(158,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(180,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(219,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(236,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(253,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(271,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(291,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests.c(302,35): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 \Main.c(1,1): error C1083: Cannot open source file: 'Main.c': No such file or directory
   (compiling source file '/Main.c')
   
+  Experiments.c
   FileOps.c
 C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\FileOps.c(12,5): warning C4013: 'gets' undefined; assuming extern returning int
 C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\FileOps.c(13,23): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
@@ -28,15 +28,62 @@ C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProje
 C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\JsonReaderTests.c(45,8): warning C4013: 'JsonValid' undefined; assuming extern returning int
 C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\JsonReaderTests.c(36,3): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
 C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\JsonReaderTests.c(37,3): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  CroJson_bkp.c
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson_bkp.c(136,41): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson_bkp.c(143,5): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson_bkp.c(405,51): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson_bkp.c(391,32): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson_bkp.c(655,5): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson_bkp.c(656,5): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson_bkp.c(663,5): error C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson_bkp.c(664,5): error C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   CroJson.c
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(135,41): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(142,5): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(399,51): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(385,32): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(649,5): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(650,5): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(657,5): error C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(658,5): error C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(110,13): error C2198: 'void SkipWhiteSpace(JsonBuffer *,bool)': too few arguments for call
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(115,17): warning C4013: 'IsCurlyOpenValid' undefined; assuming extern returning int
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(117,39): warning C4047: 'function': 'TokenPool *' differs in levels of indirection from 'TokenPool **'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(117,39): warning C4024: 'AddSyntaxToken': different types for formal and actual parameter 2
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(122,17): warning C4013: 'IsCurlyCloseValid' undefined; assuming extern returning int
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(124,39): warning C4047: 'function': 'TokenPool *' differs in levels of indirection from 'TokenPool **'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(124,39): warning C4024: 'AddSyntaxToken': different types for formal and actual parameter 2
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(132,77): error C2197: 'char *ReadContent(JsonBuffer *,bool)': too many arguments for call
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(135,38): warning C4047: 'function': 'TokenPool *' differs in levels of indirection from 'TokenPool **'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(135,38): warning C4024: 'AddContentToken': different types for formal and actual parameter 1
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(136,37): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(147,39): warning C4047: 'function': 'TokenPool *' differs in levels of indirection from 'TokenPool **'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(147,39): warning C4024: 'AddSyntaxToken': different types for formal and actual parameter 2
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(155,39): warning C4047: 'function': 'TokenPool *' differs in levels of indirection from 'TokenPool **'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(155,39): warning C4024: 'AddSyntaxToken': different types for formal and actual parameter 2
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(162,17): warning C4013: 'IsSquareOpenValid' undefined; assuming extern returning int
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(164,39): warning C4047: 'function': 'TokenPool *' differs in levels of indirection from 'TokenPool **'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(164,39): warning C4024: 'AddSyntaxToken': different types for formal and actual parameter 2
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(170,17): warning C4013: 'IsSquareCloseValid' undefined; assuming extern returning int
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(172,39): warning C4047: 'function': 'TokenPool *' differs in levels of indirection from 'TokenPool **'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(172,39): warning C4024: 'AddSyntaxToken': different types for formal and actual parameter 2
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(179,80): error C2197: 'char *ReadContent(JsonBuffer *,bool)': too many arguments for call
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(181,37): warning C4133: 'function': incompatible types - from 'char *' to 'TokenPool *'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(181,50): error C2197: 'bool AddContentToken(TokenPool *)': too many arguments for call
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(182,37): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(216,13): error C2371: 'IsCurlyOpenValid': redefinition; different basic types
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(222,13): error C2371: 'IsCurlyCloseValid': redefinition; different basic types
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(229,13): error C2371: 'IsSquareOpenValid': redefinition; different basic types
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(235,13): error C2371: 'IsSquareCloseValid': redefinition; different basic types
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(243,6): warning C4029: declared formal parameter list different from definition
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(267,12): warning C4047: 'function': 'char *' differs in levels of indirection from 'char'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(267,12): warning C4024: 'strcpy': different types for formal and actual parameter 1
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(269,56): warning C4047: '=': 'char' differs in levels of indirection from 'char *'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(266,40): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(267,5): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(280,56): warning C4047: '=': 'char' differs in levels of indirection from 'char *'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(279,60): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(287,7): warning C4029: declared formal parameter list different from definition
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(421,5): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(422,5): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(429,5): error C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJson.c(430,5): error C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  CroJsonUnitTests-Tokenization.c
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-Tokenization.c(28,49): error C2143: syntax error: missing ')' before ';'
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-Tokenization.c(45,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\CroJsonUnitTests-Tokenization.c(48,40): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   Utils.c
 C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\Utils.c(16,31): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\CathelRobertson\source\ownRepos\CathelsZerothProject\CathelsZerothProject\Utils.c(31,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
