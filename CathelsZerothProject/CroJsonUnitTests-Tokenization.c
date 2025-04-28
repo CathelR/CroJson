@@ -23,10 +23,18 @@ void TokenizationTests_Valid();
 
 void PrintTokens(TokenPool* pool)
 {
-	for (int i = 0; i < pool->tokenCount; i++)
+	if (pool != NULL)
 	{
-		printf("%s | ", (pool->tokenPool + i)->content);
+		for (int i = 0; i < pool->tokenCount; i++)
+		{
+			printf("%s | ", (pool->tokenPool + i)->content);
+		}
 	}
+	else
+	{
+		PrintError("Resultant pool was NULL");
+	}
+	
 }
 
 int main(int argc, char* argv[])
@@ -58,6 +66,8 @@ void TokenizationTests_Valid()
 	*/
 
 	TokenPool* testResult1 = TokenizeJson(&bufferT1);
+
+	PrintTokens(testResult1);
 
 
 	PrintTestsEnd("Tokenization - Valid Json");

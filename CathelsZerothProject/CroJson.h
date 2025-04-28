@@ -60,6 +60,13 @@ typedef struct Byte
     unsigned int flags : 8;
 }Byte;
 
+typedef struct Error
+{
+    char errorMessage[1024];
+    char methodName[64];
+    int charPos;
+}Error;
+
 /*
 bool ParseFloat(char*, float*);
 bool ParseInt(char*, int*);
@@ -87,9 +94,9 @@ void PrintToCursor(JsonBuffer*);
 
 */
 
-static TokenPool* TokenizeJson(JsonBuffer* bPtr);
-static bool AddContentToken(TokenPool* tokens);
-static bool AddSyntaxToken(char* tokenVal, TokenPool* tokens);
+TokenPool* TokenizeJson(JsonBuffer* bPtr);
+bool AddContentToken(TokenPool* tokens);
+bool AddSyntaxToken(char* tokenVal, TokenPool* tokens);
 bool IsQuoteValid(short, short);
 bool IsCommaValid(short, short);
 bool IsColonValid(short, short);
@@ -104,7 +111,7 @@ void AddCharToContent(char, char*, int*);
 void PrintError();
 void SetError(char*, char*, int);
 void AddErrorContext(char*);
-void SkipWhiteSpace(JsonBuffer*)
+void SkipWhiteSpace(JsonBuffer*);
 //int IsJsonListValid(char*, int);
 /*
 int ValidateObjectList(char*, int);

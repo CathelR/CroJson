@@ -10,12 +10,7 @@
 /*--------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 
-typedef struct Error
-{
-    char errorMessage[1024];
-    char methodName[64];
-    int charPos;
-}Error;
+
 static Error gl_error;
 
 
@@ -95,16 +90,23 @@ void ParseObject(char* jsonString)
 
 TokenPool* TokenizeJson(JsonBuffer* bPtr)
 {
+    
+    //We have allocated memory, so need to handle freeing here in event of error.
+    //So want to break out of loop as well as switch case
     TokenPool* tokens = malloc(sizeof(TokenPool));
     tokens->tokenPool  = malloc(bPtr->length * sizeof(Token));
     tokens->stringPool.pool = malloc(2*bPtr->length * sizeof(char));
-
+    bool errorFound = false;
     int cursorPos = 0;
     short countQuote = 0;
     short countColon = 0;
 
     for (bPtr->cursor = 0; bPtr->cursor < bPtr->length; bPtr->cursor++)
     {
+        if (errorFound)
+        {
+            break;
+        }
         if (char_is_whitespace(buffer_at_cursor(bPtr)))
         {
             SkipWhiteSpace(bPtr);
@@ -114,78 +116,87 @@ TokenPool* TokenizeJson(JsonBuffer* bPtr)
         case '{':
             if (IsCurlyOpenValid(countQuote, countColon) || bPtr->cursor == 0)
             {
-                AddSyntaxToken("{\0", &tokens);
+                AddSyntaxToken("{\0", tokens);
             }
-            else return false;
+            else errorFound=true;
             break;
         case '}':
             if (IsCurlyCloseValid(countQuote, countColon))
             {
-                AddSyntaxToken("}\0", &tokens);
+                AddSyntaxToken("}\0", tokens);
                 countColon = 0;
                 countQuote = 0;
             }
-            else return false;
+            else  errorFound = true;
         case '"':
             if (IsQuoteValid(countQuote, countColon))
             {
                 char* tempContent = ReadContent(bPtr,true,tokens->stringPool.nextBlock); //Returns the pointer to the position in the pool
                 if (tempContent != NULL)
                 {
-                    AddContentToken( &tokens);
+                    AddContentToken( tokens);
                     bPtr->cursor += strlen(tempContent); //Jump forward
                     countQuote++;
                 }
-                free(tempContent);
             }
-            else return false;
+            else  errorFound = true;
 
             break;
         case ':':
             if (IsColonValid(countQuote, countColon))
             {
-                AddSyntaxToken(":\0", &tokens);
+                AddSyntaxToken(":\0", tokens);
                 countColon++;
             }
-            else return false;
+            else  errorFound = true;
             break;
         case ',':
             if (IsCommaValid(countQuote, countColon))
             {
-                AddSyntaxToken(",\0", &tokens);
+                AddSyntaxToken(",\0", tokens);
                 countColon = 0;
                 countQuote = 0;
             }
-            else return false;
+            else  errorFound = true;
             break;
         case '[':
             if (IsSquareOpenValid(countQuote,countColon))
             {
-                AddSyntaxToken("[\0", &tokens);
+                AddSyntaxToken("[\0", tokens);
             }
-            else return false;
+            else  errorFound = true;
             break;
           
         case ']':
             if (IsSquareCloseValid(countQuote,countColon))
             {
-                AddSyntaxToken("]\0", &tokens);
+                AddSyntaxToken("]\0", tokens);
             }
-            else return false;
+            else  errorFound = true;
             break;
         default:
             if (countColon == 1 && countQuote == 2)
             {
                 char* tempContent = ReadContent(bPtr, false, tokens->stringPool.nextBlock);//Convert to use string popol
                 if (tempContent != NULL) {
-                    AddContentToken(tempContent, &tokens);
+                    AddContentToken(tokens);
                     bPtr->cursor += strlen(tempContent); //Jump forward
                 }
-                free(tempContent);
             }
-            else return false;
+            else  errorFound = true;
             continue;
         }
+    }
+    if (errorFound)
+    {
+        free(tokens->stringPool.pool);
+        free(tokens->tokenPool);
+        free(tokens);
+        return NULL;
+    }
+    else
+    {
+        return tokens;
     }
 }
 
@@ -264,9 +275,9 @@ void SkipWhiteSpace(JsonBuffer* bPtr)
 static bool AddSyntaxToken(char* tokenVal, TokenPool* tokens)
 {
     int lengthToAdd = strlen(tokenVal) + 1;
-    strcpy(*tokens->stringPool.nextBlock, tokenVal);//This bit we dont want to do after read content - could perhaps split out into separate function
+    strcpy(tokens->stringPool.nextBlock, tokenVal);//This bit we dont want to do after read content - could perhaps split out into separate function
     //But actually it's quite handy to have it here
-    *(tokens->tokenPool + tokens->tokenCount)->content = tokens->stringPool.nextBlock;
+    (tokens->tokenPool + tokens->tokenCount)->content = tokens->stringPool.nextBlock;
     tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
     tokens->tokenCount += 1;
     return true;
@@ -277,7 +288,7 @@ static bool AddContentToken(TokenPool* tokens)
 {
     //No, handier to have it where it was
     int lengthToAdd = strlen(tokens->stringPool.nextBlock) + 1;
-    *(tokens->tokenPool + tokens->tokenCount)->content = tokens->stringPool.nextBlock;
+    (tokens->tokenPool + tokens->tokenCount)->content = tokens->stringPool.nextBlock;
     tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
     tokens->tokenCount += 1;
     return true;
@@ -312,6 +323,7 @@ char* ReadContent(JsonBuffer* bPtr, bool isString, char* stringBuff)//would be b
     if (byte.flags & read_success)
     {
         *(stringBuff + index) = '\0';//Basically we cap it off - when we return we return the pointer to? This string, how do we get the pointer to the next string?
+        return stringBuff;
     }
     else
     {
