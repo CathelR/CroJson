@@ -11,7 +11,7 @@
 
 
 
-static Error gl_error;
+Error gl_error;
 
 
 
@@ -90,21 +90,34 @@ void ParseObject(char* jsonString)
 
 TokenPool* TokenizeJson(JsonBuffer* bPtr)
 {
-    
-    //We have allocated memory, so need to handle freeing here in event of error.
-    //So want to break out of loop as well as switch case
     TokenPool* tokens = malloc(sizeof(TokenPool));
+    if (tokens == NULL)
+    {
+        SetError("Failed to allocate memory for TokenPool", name_of(TokenizeJson), 0);
+        return NULL;
+    }
     tokens->tokenPool  = malloc(bPtr->length * sizeof(Token));
+    if (tokens->tokenPool == NULL)
+    {
+        SetError("Failed to allocate memory for TokenPool", name_of(TokenizeJson), 0);
+        return NULL;
+    }
     tokens->stringPool.pool = malloc(2*bPtr->length * sizeof(char));
+    if (tokens->stringPool.pool == NULL)
+    {
+        SetError("Failed to allocate memory for StringPool", name_of(TokenizeJson), 0);
+        return NULL;
+    }
     bool errorFound = false;
     int cursorPos = 0;
     short countQuote = 0;
     short countColon = 0;
-
-    for (bPtr->cursor = 0; bPtr->cursor < bPtr->length; bPtr->cursor++)
+    
+    for (bPtr->cursor; bPtr->cursor < bPtr->length; bPtr->cursor++)
     {
         if (errorFound)
         {
+            AddErrorContext(name_of(TokenizeJson));
             break;
         }
         if (char_is_whitespace(buffer_at_cursor(bPtr)))
@@ -114,22 +127,23 @@ TokenPool* TokenizeJson(JsonBuffer* bPtr)
         switch (buffer_at_cursor(bPtr))
         {
         case '{':
-            if (IsCurlyOpenValid(countQuote, countColon) || bPtr->cursor == 0)
+            if (IsCurlyOpenValid(countQuote, countColon, &bPtr->cursor) || bPtr->cursor == 0)
             {
                 AddSyntaxToken("{\0", tokens);
             }
             else errorFound=true;
             break;
         case '}':
-            if (IsCurlyCloseValid(countQuote, countColon))
+            if (IsCurlyCloseValid(countQuote, countColon, &bPtr->cursor))
             {
                 AddSyntaxToken("}\0", tokens);
                 countColon = 0;
                 countQuote = 0;
             }
             else  errorFound = true;
+            break;
         case '"':
-            if (IsQuoteValid(countQuote, countColon))
+            if (IsQuoteValid(countQuote, countColon, &bPtr->cursor))
             {
                 char* tempContent = ReadContent(bPtr,true,tokens->stringPool.nextBlock); //Returns the pointer to the position in the pool
                 if (tempContent != NULL)
@@ -140,10 +154,9 @@ TokenPool* TokenizeJson(JsonBuffer* bPtr)
                 }
             }
             else  errorFound = true;
-
             break;
         case ':':
-            if (IsColonValid(countQuote, countColon))
+            if (IsColonValid(countQuote, countColon, &bPtr->cursor))
             {
                 AddSyntaxToken(":\0", tokens);
                 countColon++;
@@ -151,7 +164,7 @@ TokenPool* TokenizeJson(JsonBuffer* bPtr)
             else  errorFound = true;
             break;
         case ',':
-            if (IsCommaValid(countQuote, countColon))
+            if (IsCommaValid(countQuote, countColon, &bPtr->cursor))
             {
                 AddSyntaxToken(",\0", tokens);
                 countColon = 0;
@@ -160,7 +173,7 @@ TokenPool* TokenizeJson(JsonBuffer* bPtr)
             else  errorFound = true;
             break;
         case '[':
-            if (IsSquareOpenValid(countQuote,countColon))
+            if (IsSquareOpenValid(countQuote,countColon, &bPtr->cursor))
             {
                 AddSyntaxToken("[\0", tokens);
             }
@@ -168,14 +181,14 @@ TokenPool* TokenizeJson(JsonBuffer* bPtr)
             break;
           
         case ']':
-            if (IsSquareCloseValid(countQuote,countColon))
+            if (IsSquareCloseValid(countQuote,countColon, &bPtr->cursor))
             {
                 AddSyntaxToken("]\0", tokens);
             }
             else  errorFound = true;
             break;
         default:
-            if (countColon == 1 && countQuote == 2)
+            if (IsGenericCharValid(countQuote, countColon, &bPtr->cursor))
             {
                 char* tempContent = ReadContent(bPtr, false, tokens->stringPool.nextBlock);//Convert to use string popol
                 if (tempContent != NULL) {
@@ -203,51 +216,89 @@ TokenPool* TokenizeJson(JsonBuffer* bPtr)
 
 
 
-static bool IsQuoteValid(short countQuote, short countColon)
+static bool IsQuoteValid(short countQuote, short countColon, int* cursorPos)
 {
     if (countColon == 0 && (countQuote == 0 || countQuote == 1)) return true;
     else if (countColon == 1 && countQuote == 3) return true;//dont need if reading content
     else if (countColon == 1 && countQuote == 2) return true;
-    else return false;
+    else
+    {
+        SetError("Character: '\"' Invalid at this position", name_of(IsQuoteValid),*cursorPos);
+        return false;
+    }
 }
 
-static bool IsCommaValid(short countQuote, short countColon)
+static bool IsCommaValid(short countQuote, short countColon, int* cursorPos)
 {
     if (countColon == 1 && countQuote == 2) return true;
     else if (countColon == 1 && countQuote == 4) return true;
-    else return false;
+    else
+    {
+        SetError("Character: ',' Invalid at this position", name_of(IsCommaValid), *cursorPos);
+        return false;
+    }
 }
 
-static bool IsColonValid(short countQuote, short countColon)
+static bool IsColonValid(short countQuote, short countColon, int* cursorPos)
 {
     if (countColon == 0 && countQuote == 2) return true;
-    else return false;
+    else
+    {
+        SetError("Character: ':' Invalid at this position", name_of(IsColonValid), *cursorPos);
+        return false;
+    }
 }
 
-static bool IsCurlyOpenValid(short countQuote, short countColon)
+static bool IsCurlyOpenValid(short countQuote, short countColon, int* cursorPos)
 {
     if (countColon == 1 && countQuote == 2) return true;
-    else return false;
+    else
+    {
+        SetError("Character: '{' Invalid at this position", name_of(IsCurlyOpenValid), *cursorPos);
+        return false;
+    }
 }
 
-static bool IsCurlyCloseValid(short countQuote, short countColon)
-{
-    if (countColon == 1 && countQuote == 2) return true;
-    else if (countColon == 1 && countQuote == 4) return true;
-    else return false;
-}
-
-static bool IsSquareOpenValid(short countQuote, short countColon)
-{
-    if (countColon == 1 && countQuote == 2) return true;
-    else return false;
-}
-
-static bool IsSquareCloseValid(short countQuote, short countColon)
+static bool IsCurlyCloseValid(short countQuote, short countColon, int* cursorPos)
 {
     if (countColon == 1 && countQuote == 2) return true;
     else if (countColon == 1 && countQuote == 4) return true;
-    else return false;
+    else
+    {
+        SetError("Character: '}' Invalid at this position", name_of(IsCurlyCloseValid), *cursorPos);
+        return false;
+    }
+}
+
+static bool IsSquareOpenValid(short countQuote, short countColon, int* cursorPos)
+{
+    if (countColon == 1 && countQuote == 2) return true;
+    else
+    {
+        SetError("Character: '[' Invalid at this position", name_of(IsSquareOpenValid), *cursorPos);
+        return false;
+    }
+}
+
+static bool IsSquareCloseValid(short countQuote, short countColon, int* cursorPos)
+{
+    if (countColon == 1 && countQuote == 2) return true;
+    else if (countColon == 1 && countQuote == 4) return true;
+    else
+    {
+        SetError("Character: ']' Invalid at this position", name_of(IsSquareCloseValid), *cursorPos);
+        return false;
+    }
+}
+
+static bool IsGenericCharValid(short countQuote, short countColon, int* cursorPos)
+{
+    if (countColon == 1 && countQuote == 2) return true;
+    else
+    {
+        SetError("Non Syntax Character invalid at this position", name_of(IsGenericCharValid), *cursorPos);
+        return false;
+    }
 }
 
 //While the current char is whitespace, skips the whitespace and ends on the first non whitespace char
@@ -271,15 +322,21 @@ void SkipWhiteSpace(JsonBuffer* bPtr)
     }
 }
 
-//Designed to work with passing in the string, not if the string is already  there
+
 static bool AddSyntaxToken(char* tokenVal, TokenPool* tokens)
 {
     int lengthToAdd = strlen(tokenVal) + 1;
-    strcpy(tokens->stringPool.nextBlock, tokenVal);//This bit we dont want to do after read content - could perhaps split out into separate function
-    //But actually it's quite handy to have it here
-    (tokens->tokenPool + tokens->tokenCount)->content = tokens->stringPool.nextBlock;
+    char* result = strcpy(tokens->stringPool.nextBlock, tokenVal);
+    if (result == NULL)
+    {
+        SetError("Error copying string", name_of(AddSyntaxToken), 0);
+    }
+    
+    (tokens->tokenPool + tokens->tokenCount)->content = tokens->stringPool.nextBlock; //This line is the issue
+    printf("here");
     tokens->stringPool.nextBlock = tokens->stringPool.nextBlock + lengthToAdd;
     tokens->tokenCount += 1;
+    
     return true;
 }
 
@@ -422,11 +479,15 @@ void AddCharToContent(char currChar, char* string, int* indexPtr)
 }
 
 
-void PrintError()
+void PrintError(Error* error)
 {
-    printf("\n!!!->Error: %s || Character: %d\n   ->Call Stack: %s\n", gl_error.errorMessage, gl_error.charPos, gl_error.methodName);
+    printf("\n!!!->Error: %s || Character: %d\n   ->Call Stack: %s\n", error->errorMessage, error->charPos, error->methodName);
 }
 
+Error* GetError()
+{
+    return &gl_error;
+}
 
 void SetError(char* errorMessage, char* methodName, int charPos)
 {

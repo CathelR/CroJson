@@ -39,7 +39,7 @@ void PrintTokens(TokenPool* pool)
 
 int main(int argc, char* argv[])
 {
-
+	TokenizationTests_Valid();
 	return 0;
 }
 
@@ -66,8 +66,9 @@ void TokenizationTests_Valid()
 	*/
 
 	TokenPool* testResult1 = TokenizeJson(&bufferT1);
-
-	PrintTokens(testResult1);
+	//Error* error = GetError();
+	//PrintError(error);
+	//PrintTokens(testResult1);
 
 
 	PrintTestsEnd("Tokenization - Valid Json");
